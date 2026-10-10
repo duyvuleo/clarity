@@ -7,12 +7,23 @@ import os
 class Llm:
     @staticmethod
     def from_params(params):
-        from langchain_openai import ChatOpenAI
-
         options = deepcopy(params)
         vendor = options.pop("vendor", "openai-compatible")
+        if vendor == "codex":
+            from clarity.codex_model import CodexChatModel
+
+            allowed = {"model", "reasoning_effort", "timeout", "receipt_path"}
+            if set(options) - allowed:
+                raise ValueError(
+                    "Codex options are model, reasoning_effort, timeout and receipt_path"
+                )
+            if "model" in options:
+                options["model_name"] = options.pop("model")
+            return CodexChatModel(**options)
         if vendor != "openai-compatible":
-            raise ValueError("Use vendor 'openai-compatible' with your own model endpoint")
+            raise ValueError("Use vendor 'openai-compatible' or 'codex'")
+        from langchain_openai import ChatOpenAI
+
         if any(key in options for key in ["api_key", "password", "secret", "oci_credentials_path"]):
             raise ValueError(
                 "Credentials must come from environment variables, not configuration files"

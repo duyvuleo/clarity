@@ -2,20 +2,20 @@
   "date": "2026-10-09",
   "python": "3.12.10",
   "source_tests": {
-    "tests": 28,
-    "failures": 0,
-    "errors": 0
-  },
-  "fresh_wheel_tests": {
-    "tests": 28,
+    "tests": 33,
     "failures": 0,
     "errors": 0,
-    "skipped": 0,
-    "seconds": 12.521
+    "skipped": 0
+  },
+  "fresh_wheel_tests": {
+    "tests": 33,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
   },
   "wheel_test_working_directory": "outside source tree",
   "network_disabled_during_tests": true,
-  "live_model_generation_verified": false,
+  "live_model_generation_verified": true,
   "sqlite_execution_accuracy_verified": false,
   "published_results_reproduced": false,
   "original_source_artifacts_unchanged": 49,
@@ -23,5 +23,13 @@
   "build": [
     "wheel",
     "source distribution"
-  ]
+  ],
+  "release_version": "0.1.1",
+  "live_model_generation_scope": "two frozen single-facet semantic column ambiguity cases; 10 conversations; 30 live calls",
+  "local_sql_execution_verified": {
+    "terminal_queries": 8,
+    "fully_helpful_result_matches": "4/4",
+    "scope": "two-case smoke test only"
+  },
+  "live_evidence": "live-validation/summary.json"
 }

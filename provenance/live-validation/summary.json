@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-09",
+  "scope": "two frozen single-facet semantic-column-ambiguity smoke cases",
+  "provider": "Codex CLI",
+  "cli_version": "0.147.0",
+  "requested_model": "CLI default",
+  "backend_model_identity": null,
+  "reasoning_effort": "low",
+  "generators_and_evaluators": "same model; one judge per check",
+  "initial_missing_context_attempt": {
+    "cases": 2,
+    "accepted_conversations": 0,
+    "successful_model_calls": 2
+  },
+  "corrected_attempt": {
+    "cases": 2,
+    "model_calls": 30,
+    "successful_model_calls": 30,
+    "tool_use_events": 0,
+    "generated_conversations": 10,
+    "terminal_select_queries_executed": 8,
+    "explicit_no_sql_dialogues": 2,
+    "fully_helpful_result_checks": 4,
+    "fully_helpful_result_checks_passed": true,
+    "derived_candidate_queries_executed": 5,
+    "schema_grounding_passed": true,
+    "source_seed_preserved": true
+  },
+  "usage": {
+    "input_tokens": 393578,
+    "cached_input_tokens": 205056,
+    "output_tokens": 4270,
+    "reasoning_output_tokens": 2011
+  },
+  "elapsed_model_call_seconds": 339.331,
+  "published_result_reproduction": false,
+  "semantic_adjudication_complete": false,
+  "whole_benchmark_verified": false,
+  "other_live_generation_modes_verified": false
+}

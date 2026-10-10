@@ -82,6 +82,11 @@ def scripted_model(monkeypatch):
             if "group" in keys:
                 response["group"] = ["name", "country"]
         elif "group" in keys:
+            if keys == {"group", "coi"}:
+                assert "CREATE TABLE singer" in text, "Retrieval requires the selected table schema"
+                assert re.search(r"Given Term:\s*(?:name|country|age)\b", text, re.I), (
+                    "Retrieval requires the selected SQL column"
+                )
             response = {"group": ["name", "country"], "coi": "name", "voi": "France"}
         else:
             raise AssertionError(f"Uncovered model schema: {keys}")

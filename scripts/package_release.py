@@ -6,6 +6,7 @@ import hashlib
 import json
 from pathlib import Path
 import re
+import tomllib
 import zipfile
 
 ROOT_FILES = {
@@ -27,7 +28,7 @@ ALLOWED_SUFFIXES = {
     "tests": {".py"},
     "scripts": {".py"},
     "configs": {".json"},
-    "provenance": {".json", ".xml"},
+    "provenance": {".json", ".jsonl", ".md", ".xml"},
     ".github": {".yml"},
 }
 # Report only the file and rule name, never the matched material.
@@ -167,11 +168,12 @@ def main():
     result = audit(root, args.include_values)
     if args.output:
         args.output.mkdir(parents=True, exist_ok=True)
-        main_archive = args.output / "clarity-spider-bird-0.1.0.zip"
+        version = tomllib.loads((root / "pyproject.toml").read_text())["project"]["version"]
+        main_archive = args.output / f"clarity-spider-bird-{version}.zip"
         write_archive(main_archive, release_files(root), root)
         if args.include_values:
             values = [root / "data" / dataset / "values.json.gz" for dataset in ("spider", "bird")]
-            write_archive(args.output / "clarity-values-0.1.0.zip", values, root)
+            write_archive(args.output / f"clarity-values-{version}.zip", values, root)
     print(json.dumps(result, indent=2))
 
 

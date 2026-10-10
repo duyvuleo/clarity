@@ -1,5 +1,5 @@
 {
-  "allowlisted_files": 100,
+  "allowlisted_files": 140,
   "content_rules": [
     "private_infrastructure",
     "local_filesystem_path",

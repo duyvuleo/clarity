@@ -1,6 +1,6 @@
 # Data license and attribution
 
-Files under `data/` contain Spider/BIRD-derived questions, SQL, schema catalogs, value catalogs and generated CLARITY annotations. They are distributed under **Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)**, retaining the upstream data license rather than extending the MIT software license to these materials.
+Files under `data/` and benchmark-derived records under `provenance/live-validation/` contain Spider/BIRD-derived questions, SQL, schema catalogs, value catalogs and generated CLARITY annotations. They are distributed under **Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)**, retaining the upstream data license rather than extending the MIT software license to these materials.
 
 License: <https://creativecommons.org/licenses/by-sa/4.0/>. Legal text: <https://creativecommons.org/licenses/by-sa/4.0/legalcode.en>.
 

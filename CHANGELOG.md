@@ -1,5 +1,12 @@
 # Release-copy changes
 
+## 0.1.1 — October 9, 2026
+
+- Added an optional authenticated Codex CLI model adapter, using ephemeral, read-only sessions, structured responses, tool-use rejection and credential-free call receipts.
+- Fixed the live retrieval context handoff: the selected table schema and target column are now set before the retriever calls its model. Added prompt-context assertions to prevent regression.
+- Added a read-only local SQL verifier for generated conversations, schema grounding and helpful-dialogue result comparison. Alternative dialogue targets are reported separately from the inherited parent SQL.
+- Retained initial live rejections and the amended protocol; live smoke-test results are recorded with the release provenance rather than interpreted as a benchmark score.
+
 ## 0.1.0 — October 9, 2026
 
 - Extracted the CLARITY generation pipeline and shared flow utilities into an installable `clarity` package. Replaced working-directory-dependent imports with package imports.

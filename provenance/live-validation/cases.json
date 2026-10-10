@@ -1,0 +1,42 @@
+[
+  {
+    "dataset": "spider",
+    "source_seed_index": 20,
+    "db_id": "farm",
+    "seed": {
+      "db_id": "farm",
+      "dataset": null,
+      "template": null,
+      "question": "What is the total horses record for each farm, sorted ascending?",
+      "completion": null,
+      "synonymsStatus": null,
+      "schema": null,
+      "initialState": null,
+      "currentState": null,
+      "history": null,
+      "expectedQuery": "SELECT Total_Horses FROM farm ORDER BY Total_Horses ASC"
+    },
+    "source_database_sha256": "4e2be63e448a8cee55564ee22e3a7596102338caabfbb20c61db1882389cf576",
+    "database_hash_verified": true
+  },
+  {
+    "dataset": "bird",
+    "source_seed_index": 357,
+    "db_id": "card_games",
+    "seed": {
+      "db_id": "card_games",
+      "dataset": null,
+      "template": null,
+      "question": "How many cards have infinite power?",
+      "completion": null,
+      "synonymsStatus": null,
+      "schema": null,
+      "initialState": null,
+      "currentState": null,
+      "history": null,
+      "expectedQuery": "SELECT COUNT(*) FROM cards WHERE power = '*'"
+    },
+    "source_database_sha256": "c98bdb57fe7474da798b407785544b9af0daaad5d61fd21e2a73309493bc1227",
+    "database_hash_verified": true
+  }
+]

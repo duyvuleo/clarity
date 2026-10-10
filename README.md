@@ -28,7 +28,7 @@ python -m pytest
 | `schemas.json`, `columns.json` | Catalogs filtered to the selected benchmark database IDs |
 | `values.json.gz` | Optional compressed database-value catalog for value experiments |
 
-The main archive contains code, annotations, seeds, schemas and columns. Extract the separate `clarity-values-0.1.0.zip` beside it to add the value catalogs. Column generation and annotation analysis do not require that asset. The BIRD value catalog is large; allow several gigabytes of memory when loading it. The value catalogs are ignored by Git so they can be distributed as release assets rather than oversized repository files.
+The main archive contains code, annotations, seeds, schemas and columns. Extract the separate `clarity-values-0.1.1.zip` beside it to add the value catalogs. Column generation and annotation analysis do not require that asset. The BIRD value catalog is large; allow several gigabytes of memory when loading it. The value catalogs are ignored by Git so they can be distributed as release assets rather than oversized repository files.
 
 SQLite databases are not bundled. Obtain them from the [Spider](https://yale-lily.github.io/spider) and [BIRD](https://bird-bench.github.io/) maintainers if you need SQL execution. The value catalogs support generation; they do not substitute for executable databases.
 
@@ -48,9 +48,17 @@ Generation invokes the configured endpoint and may incur its normal charges. Eac
 
 The output directory contains raw intermediate results, formatted scenario files, and a receipt with processed, accepted and error counts. Existing output files are preserved. Generation errors cause a nonzero exit status. The two historical “not helpful” variants are retained as separate files. Conversation-evaluation nodes are retained, but the source graph bypasses them and uses the sample selector after conversation generation; this release preserves that routing.
 
+### Use an authenticated Codex CLI
+
+Alternatively, install [Codex CLI](https://learn.chatgpt.com/docs/non-interactive-mode) and sign in locally. Set each model role to `{"vendor": "codex", "reasoning_effort": "low"}` in a copy of the relevant configuration. Use one entry per evaluator list for a small trial. An optional `model` selects a CLI-supported model name, and `receipt_path` records prompt/response hashes, timings and usage without credentials or raw CLI logs.
+
+The adapter calls `codex exec` in an ephemeral, read-only session with shell and web search disabled. It rejects any tool-use event and parses the model answer through the same structured-output chain as the other provider. Saved CLI authentication stays in Codex's existing credential store. This is intended for local research runs; it does not add account credentials or Codex authentication to the public repository or CI.
+
 ## Verification and reuse
 
 Tests cover every packaged annotation, package imports, parser behavior, rejection voting, invalid inputs, compressed I/O, model configuration, and actual LangGraph execution with scripted model responses. They verify local software behavior rather than semantic quality of a live model or the paper's reported results. See [VERIFICATION.md](VERIFICATION.md) for the measured validation boundary.
+
+Release 0.1.1 also includes a [live Codex smoke test](provenance/live-validation/REPORT.md): one frozen Spider seed and one frozen BIRD seed produced ten conversations. Eight emitted SELECT queries executed against pinned local SQLite instances, and all four fully helpful dialogues matched the parent-query result bags. Two insufficient-clarification dialogues explicitly declined to produce SQL. This live run exposed and fixed a missing schema/column context handoff. It covers two single-facet semantic-column cases, with one model and one judge; it does not establish whole-benchmark performance or semantic correctness of every annotation.
 
 Code and original software documentation use **MIT**, as selected for this release. The Spider/BIRD-derived records and catalogs use **CC BY-SA 4.0** with upstream attribution. The MIT software license does not replace the data terms. See [DATA_LICENSE.md](DATA_LICENSE.md) and [NOTICE.md](NOTICE.md).
 

@@ -129,7 +129,7 @@
       "source_sha256": "e0f591bf5e17d7079cc5b22e8b895d710eb050cdab02eb3fbbb199a41125b9a7",
       "release": "src/clarity/generation/task_flows/components/nodes/retreiver.py",
       "transformation": "package imports and duplicate declarations; further fixes documented in CHANGELOG.md",
-      "release_sha256": "18ff60ff5c3ec9c5b9955e860226b4d8ff9b4c86221baa5a49fa430dceba9057",
+      "release_sha256": "eb70ebd5739f15a40e06aec435c3253c2ce4cb189aa600047d8c22bde633a7dc",
       "source_id": "artifact-48396eae02a18198"
     },
     {
@@ -359,5 +359,6 @@
       "release_sha256": "e87c2607a2ff3c4d6e3e33b29445a1b032c0b31c4442b1e69cbf9e7e64da0355",
       "source_id": "artifact-63a6a03151afc7c6"
     }
-  ]
+  ],
+  "release_version": "0.1.1"
 }

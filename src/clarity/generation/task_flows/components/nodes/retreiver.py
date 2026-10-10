@@ -110,6 +110,11 @@ class SchemaRetriever(UtteranceNodeBase):
                     SettingKey.COLUMN_AMBIGUITY == flow_config.ac_type
                     or SettingKey.COLUMN_CONFUSION == flow_config.ac_type
                 ):
+                    table = next(iter(state.parser_result["selected"][m]))
+                    state.example.coi = state.example.cois[m]
+                    state.example.coi_table = table
+                    state.example.db_schema = state.example.spider_schema[table]
+                    state.example.dataset_columns = state.example.spider_columns[table]
                     if (
                         flow_config.retrieval_type == SettingKey.DENSE_RETRIEVAL
                         or flow_config.retrieval_type == SettingKey.HYBRID_RETRIEVAL
