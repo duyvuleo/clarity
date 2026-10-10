@@ -8,7 +8,7 @@ build/
 dist/
 .env
 .env.*
-outputs/
+/outputs/
 *.log
 .DS_Store
 # Optional catalogs are distributed as a separate release asset.

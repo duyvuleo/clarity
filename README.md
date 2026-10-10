@@ -4,6 +4,17 @@ CLARITY generates and studies conversational ambiguity and unanswerability in na
 
 The released files contain **12,098 Spider conversations** and **7,170 BIRD conversations**, with 7,000 and 1,534 source seed records respectively. Schema and column catalogs cover 140 Spider databases and 11 BIRD databases. These are counts of the packaged files; they are not reconstructed paper evaluation splits.
 
+## Get the code
+
+The public repository is [https://github.com/duyvuleo/clarity](https://github.com/duyvuleo/clarity). Clone it with:
+
+```bash
+git clone https://github.com/duyvuleo/clarity.git
+cd clarity
+```
+
+Versioned archives, optional value catalogs and checksums are available under [GitHub Releases](https://github.com/duyvuleo/clarity/releases). The repository contains only Spider/BIRD benchmark data and the prepared research code.
+
 ## Install and check
 
 Use Python 3.11 or later. Python 3.12 is the locally verified environment. From this release directory:

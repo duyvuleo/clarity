@@ -22,6 +22,10 @@ dependencies = [
   "tqdm>=4.67,<5",
 ]
 
+[project.urls]
+Repository = "https://github.com/duyvuleo/clarity"
+Paper = "https://arxiv.org/abs/2604.22313"
+
 [project.optional-dependencies]
 hybrid = ["sentence-transformers>=3,<6"]
 oci-embeddings = ["oci>=2.187.2,<3"]
