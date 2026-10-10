@@ -31,7 +31,20 @@ class UtteranceFlowBase(BaseFlow):
         if config.get("max_examples") is not None:
             examples = examples[: config["max_examples"]]
         task.train_data = examples
+        if task.ac_type == "column_ambiguity" and task.retrieval_type != "llm":
+            from clarity.retrieval.factory import build_schema_index
+
+            task.schema_index = build_schema_index(
+                task.schema_retrieval, task.retrieval_type, schemas, columns, path.parent
+            )
         for field in ["llm_retrieval", "llm_eval_utt", "llm_eval_term", "llm_sample_selectors"]:
+            if (
+                field == "llm_retrieval"
+                and task.retrieval_type != "llm"
+                and not task.schema_retrieval.llm_filter
+            ):
+                task.llm_retrieval = []
+                continue
             setattr(task, field, [Llm.from_params(options) for options in getattr(task, field)])
         task.llm_gen_utt = Llm.from_params(task.llm_gen_utt)
         task.llm_gen_term = Llm.from_params(task.llm_gen_term)

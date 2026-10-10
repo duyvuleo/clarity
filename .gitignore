@@ -13,3 +13,5 @@ outputs/
 .DS_Store
 # Optional catalogs are distributed as a separate release asset.
 data/*/values.json.gz
+
+.cache/

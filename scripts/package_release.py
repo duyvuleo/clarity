@@ -10,6 +10,8 @@ import tomllib
 import zipfile
 
 ROOT_FILES = {
+    "requirements-hybrid-lock.txt",
+    "SCHEMA_RETRIEVAL.md",
     "README.md",
     "LICENSE",
     "NOTICE.md",

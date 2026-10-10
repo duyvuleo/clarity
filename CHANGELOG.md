@@ -1,5 +1,14 @@
 # Release-copy changes
 
+## 0.2.0 — October 9, 2026
+
+- Wired conventional table-scoped BM25 + dense cosine search with weighted reciprocal-rank fusion into the generation graph. `hybrid` now denotes dense + sparse search; `dense`, `sparse` and existing `llm` modes are available.
+- Added configurable Sentence Transformers, OpenAI-compatible, Ollama and OCI embedding adapters. Local model weights are optional dependencies and remain outside release artifacts; authentication stays in environment or existing SDK stores.
+- Added optional LLM post-filtering as a separate setting, with schema-bound candidate approval and preserved rank order. Conventional retrieval does not initialize unused retrieval LLMs.
+- Added cache fingerprints for embedding/schema changes, dimension and vector validation, corruption detection, and score/rank traces. Added `clarity retrieve` and two public hybrid configuration examples.
+- Fixed the alternative-candidate gate to exclude complete, case-normalized column names; value ambiguity excludes the relevant source value or column. Removed obsolete private-retriever helper paths.
+- Added ranking, alpha-endpoint, scope-isolation, cache-rebuild, provider-contract and real graph integration tests. Local pretrained embedding verification is recorded separately from mocked remote-provider contracts.
+
 ## 0.1.1 — October 9, 2026
 
 - Added an optional authenticated Codex CLI model adapter, using ephemeral, read-only sessions, structured responses, tool-use rejection and credential-free call receipts.

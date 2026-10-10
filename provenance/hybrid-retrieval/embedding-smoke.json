@@ -1,0 +1,441 @@
+[
+  {
+    "dataset": "spider",
+    "db_id": "farm",
+    "table": "farm",
+    "query": "Total_Horses",
+    "elapsed_seconds": 4.345,
+    "index": {
+      "fingerprint": "6553f7b98dc0ef063780fe032f7efbc5205444e1c2e75eb8b8fbcb258f201ebb",
+      "embedding": {
+        "provider": "sentence-transformers",
+        "model": "sentence-transformers/all-MiniLM-L6-v2",
+        "revision": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+        "dimensions": null,
+        "document_prefix": "",
+        "query_prefix": "",
+        "endpoint_sha256": null
+      },
+      "dimensions": 384,
+      "documents": 10,
+      "cache_loaded": true
+    },
+    "expected_alternative": "Working_Horses",
+    "expected_alternative_rank": 3,
+    "schema_grounding_passed": true,
+    "hits": [
+      {
+        "db_id": "farm",
+        "table": "farm",
+        "column": "Total_Horses",
+        "data_type": "REAL",
+        "score": 0.01639344262295082,
+        "dense_score": 0.6611678600311279,
+        "sparse_score": 4.118054917372442,
+        "dense_rank": 1,
+        "sparse_rank": 1
+      },
+      {
+        "db_id": "farm",
+        "table": "farm",
+        "column": "Total_Cattle",
+        "data_type": "REAL",
+        "score": 0.016001024065540194,
+        "dense_score": 0.4286237359046936,
+        "sparse_score": 2.059027458686221,
+        "dense_rank": 3,
+        "sparse_rank": 2
+      },
+      {
+        "db_id": "farm",
+        "table": "farm",
+        "column": "Working_Horses",
+        "data_type": "REAL",
+        "score": 0.016001024065540194,
+        "dense_score": 0.4567820429801941,
+        "sparse_score": 2.059027458686221,
+        "dense_rank": 2,
+        "sparse_rank": 3
+      },
+      {
+        "db_id": "farm",
+        "table": "farm",
+        "column": "Sheep_and_Goats",
+        "data_type": "REAL",
+        "score": 0.0078125,
+        "dense_score": 0.3349142074584961,
+        "sparse_score": null,
+        "dense_rank": 4,
+        "sparse_rank": null
+      },
+      {
+        "db_id": "farm",
+        "table": "farm",
+        "column": "Bulls",
+        "data_type": "REAL",
+        "score": 0.007692307692307693,
+        "dense_score": 0.2484237402677536,
+        "sparse_score": null,
+        "dense_rank": 5,
+        "sparse_rank": null
+      },
+      {
+        "db_id": "farm",
+        "table": "farm",
+        "column": "Cows",
+        "data_type": "REAL",
+        "score": 0.007575757575757576,
+        "dense_score": 0.2380220890045166,
+        "sparse_score": null,
+        "dense_rank": 6,
+        "sparse_rank": null
+      },
+      {
+        "db_id": "farm",
+        "table": "farm",
+        "column": "Pigs",
+        "data_type": "REAL",
+        "score": 0.007462686567164179,
+        "dense_score": 0.21915896236896515,
+        "sparse_score": null,
+        "dense_rank": 7,
+        "sparse_rank": null
+      },
+      {
+        "db_id": "farm",
+        "table": "farm",
+        "column": "Farm_ID",
+        "data_type": "REAL",
+        "score": 0.007352941176470588,
+        "dense_score": 0.1584571897983551,
+        "sparse_score": null,
+        "dense_rank": 8,
+        "sparse_rank": null
+      },
+      {
+        "db_id": "farm",
+        "table": "farm",
+        "column": "Oxen",
+        "data_type": "REAL",
+        "score": 0.007246376811594203,
+        "dense_score": 0.13153952360153198,
+        "sparse_score": null,
+        "dense_rank": 9,
+        "sparse_rank": null
+      },
+      {
+        "db_id": "farm",
+        "table": "farm",
+        "column": "Year",
+        "data_type": "REAL",
+        "score": 0.007142857142857143,
+        "dense_score": 0.0705631822347641,
+        "sparse_score": null,
+        "dense_rank": 10,
+        "sparse_rank": null
+      }
+    ]
+  },
+  {
+    "dataset": "bird",
+    "db_id": "card_games",
+    "table": "cards",
+    "query": "power",
+    "elapsed_seconds": 0.05,
+    "index": {
+      "fingerprint": "652fb0cbb9a4a54dc72e3106a036c7c396b7134bbf03538b8117c1c9acb7c5e5",
+      "embedding": {
+        "provider": "sentence-transformers",
+        "model": "sentence-transformers/all-MiniLM-L6-v2",
+        "revision": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+        "dimensions": null,
+        "document_prefix": "",
+        "query_prefix": "",
+        "endpoint_sha256": null
+      },
+      "dimensions": 384,
+      "documents": 74,
+      "cache_loaded": true
+    },
+    "expected_alternative": "toughness",
+    "expected_alternative_rank": 6,
+    "schema_grounding_passed": true,
+    "hits": [
+      {
+        "db_id": "card_games",
+        "table": "cards",
+        "column": "power",
+        "data_type": "TEXT",
+        "score": 0.01639344262295082,
+        "dense_score": 0.45806628465652466,
+        "sparse_score": 5.963647332218549,
+        "dense_rank": 1,
+        "sparse_rank": 1
+      },
+      {
+        "db_id": "card_games",
+        "table": "cards",
+        "column": "convertedManaCost",
+        "data_type": "REAL",
+        "score": 0.008064516129032258,
+        "dense_score": 0.16370201110839844,
+        "sparse_score": null,
+        "dense_rank": 2,
+        "sparse_rank": null
+      },
+      {
+        "db_id": "card_games",
+        "table": "cards",
+        "column": "manaCost",
+        "data_type": "TEXT",
+        "score": 0.007936507936507936,
+        "dense_score": 0.14870943129062653,
+        "sparse_score": null,
+        "dense_rank": 3,
+        "sparse_rank": null
+      },
+      {
+        "db_id": "card_games",
+        "table": "cards",
+        "column": "multiverseId",
+        "data_type": "TEXT",
+        "score": 0.0078125,
+        "dense_score": 0.1443350911140442,
+        "sparse_score": null,
+        "dense_rank": 4,
+        "sparse_rank": null
+      },
+      {
+        "db_id": "card_games",
+        "table": "cards",
+        "column": "life",
+        "data_type": "TEXT",
+        "score": 0.007692307692307693,
+        "dense_score": 0.14433103799819946,
+        "sparse_score": null,
+        "dense_rank": 5,
+        "sparse_rank": null
+      },
+      {
+        "db_id": "card_games",
+        "table": "cards",
+        "column": "toughness",
+        "data_type": "TEXT",
+        "score": 0.007575757575757576,
+        "dense_score": 0.1428026407957077,
+        "sparse_score": null,
+        "dense_rank": 6,
+        "sparse_rank": null
+      },
+      {
+        "db_id": "card_games",
+        "table": "cards",
+        "column": "leadershipSkills",
+        "data_type": "TEXT",
+        "score": 0.007462686567164179,
+        "dense_score": 0.13186606764793396,
+        "sparse_score": null,
+        "dense_rank": 7,
+        "sparse_rank": null
+      },
+      {
+        "db_id": "card_games",
+        "table": "cards",
+        "column": "cardKingdomFoilId",
+        "data_type": "TEXT",
+        "score": 0.007352941176470588,
+        "dense_score": 0.1290106475353241,
+        "sparse_score": null,
+        "dense_rank": 8,
+        "sparse_rank": null
+      },
+      {
+        "db_id": "card_games",
+        "table": "cards",
+        "column": "faceConvertedManaCost",
+        "data_type": "REAL",
+        "score": 0.007246376811594203,
+        "dense_score": 0.1244199126958847,
+        "sparse_score": null,
+        "dense_rank": 9,
+        "sparse_rank": null
+      },
+      {
+        "db_id": "card_games",
+        "table": "cards",
+        "column": "loyalty",
+        "data_type": "TEXT",
+        "score": 0.007142857142857143,
+        "dense_score": 0.11839888989925385,
+        "sparse_score": null,
+        "dense_rank": 10,
+        "sparse_rank": null
+      },
+      {
+        "db_id": "card_games",
+        "table": "cards",
+        "column": "hand",
+        "data_type": "TEXT",
+        "score": 0.007042253521126761,
+        "dense_score": 0.1181807667016983,
+        "sparse_score": null,
+        "dense_rank": 11,
+        "sparse_rank": null
+      },
+      {
+        "db_id": "card_games",
+        "table": "cards",
+        "column": "rarity",
+        "data_type": "TEXT",
+        "score": 0.006944444444444444,
+        "dense_score": 0.11667554825544357,
+        "sparse_score": null,
+        "dense_rank": 12,
+        "sparse_rank": null
+      },
+      {
+        "db_id": "card_games",
+        "table": "cards",
+        "column": "cardKingdomId",
+        "data_type": "TEXT",
+        "score": 0.00684931506849315,
+        "dense_score": 0.11663120985031128,
+        "sparse_score": null,
+        "dense_rank": 13,
+        "sparse_rank": null
+      },
+      {
+        "db_id": "card_games",
+        "table": "cards",
+        "column": "frameEffects",
+        "data_type": "TEXT",
+        "score": 0.006756756756756757,
+        "dense_score": 0.11623973399400711,
+        "sparse_score": null,
+        "dense_rank": 14,
+        "sparse_rank": null
+      },
+      {
+        "db_id": "card_games",
+        "table": "cards",
+        "column": "isTimeshifted",
+        "data_type": "INTEGER",
+        "score": 0.006666666666666667,
+        "dense_score": 0.11519721895456314,
+        "sparse_score": null,
+        "dense_rank": 15,
+        "sparse_rank": null
+      },
+      {
+        "db_id": "card_games",
+        "table": "cards",
+        "column": "isStorySpotlight",
+        "data_type": "INTEGER",
+        "score": 0.006578947368421052,
+        "dense_score": 0.11146025359630585,
+        "sparse_score": null,
+        "dense_rank": 16,
+        "sparse_rank": null
+      },
+      {
+        "db_id": "card_games",
+        "table": "cards",
+        "column": "artist",
+        "data_type": "TEXT",
+        "score": 0.006493506493506494,
+        "dense_score": 0.1100689098238945,
+        "sparse_score": null,
+        "dense_rank": 17,
+        "sparse_rank": null
+      },
+      {
+        "db_id": "card_games",
+        "table": "cards",
+        "column": "text",
+        "data_type": "TEXT",
+        "score": 0.00641025641025641,
+        "dense_score": 0.10114641487598419,
+        "sparse_score": null,
+        "dense_rank": 18,
+        "sparse_rank": null
+      },
+      {
+        "db_id": "card_games",
+        "table": "cards",
+        "column": "isFullArt",
+        "data_type": "INTEGER",
+        "score": 0.006329113924050633,
+        "dense_score": 0.09697051346302032,
+        "sparse_score": null,
+        "dense_rank": 19,
+        "sparse_rank": null
+      },
+      {
+        "db_id": "card_games",
+        "table": "cards",
+        "column": "supertypes",
+        "data_type": "TEXT",
+        "score": 0.00625,
+        "dense_score": 0.09446081519126892,
+        "sparse_score": null,
+        "dense_rank": 20,
+        "sparse_rank": null
+      },
+      {
+        "db_id": "card_games",
+        "table": "cards",
+        "column": "side",
+        "data_type": "TEXT",
+        "score": 0.006172839506172839,
+        "dense_score": 0.09436634182929993,
+        "sparse_score": null,
+        "dense_rank": 21,
+        "sparse_rank": null
+      },
+      {
+        "db_id": "card_games",
+        "table": "cards",
+        "column": "duelDeck",
+        "data_type": "TEXT",
+        "score": 0.006097560975609756,
+        "dense_score": 0.09431569278240204,
+        "sparse_score": null,
+        "dense_rank": 22,
+        "sparse_rank": null
+      },
+      {
+        "db_id": "card_games",
+        "table": "cards",
+        "column": "hasNonFoil",
+        "data_type": "INTEGER",
+        "score": 0.006024096385542169,
+        "dense_score": 0.09362504631280899,
+        "sparse_score": null,
+        "dense_rank": 23,
+        "sparse_rank": null
+      },
+      {
+        "db_id": "card_games",
+        "table": "cards",
+        "column": "mtgArenaId",
+        "data_type": "TEXT",
+        "score": 0.005952380952380952,
+        "dense_score": 0.09304449707269669,
+        "sparse_score": null,
+        "dense_rank": 24,
+        "sparse_rank": null
+      },
+      {
+        "db_id": "card_games",
+        "table": "cards",
+        "column": "isTextless",
+        "data_type": "INTEGER",
+        "score": 0.0058823529411764705,
+        "dense_score": 0.09100496023893356,
+        "sparse_score": null,
+        "dense_rank": 25,
+        "sparse_rank": null
+      }
+    ]
+  }
+]

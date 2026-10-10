@@ -43,44 +43,6 @@ class SchemaRetriever(UtteranceNodeBase):
             output_key=output_key,
         )
 
-    @staticmethod
-    def extract_columns_from_dense(data):
-        columns = [data[i]["properties"]["column_name"].strip('"') for i in range(len(data))]
-        scores = [data[i]["hybrid_score"] for i in range(len(data))]
-        return columns, scores
-
-    @staticmethod
-    def extract_valid_columns(outcome):
-        columns = []
-        for element in outcome:
-            try:
-                if element["outcome"].lower() == "valid":
-                    columns.append(element["name"])
-            except:
-                continue
-        return columns
-
-    @staticmethod
-    def process_dataset_name(text):
-        text = "financialsexmemployeeexpe" if text == "Financials - EXM Employee Expenses" else text
-        return re.sub(r"[-_ ]", "", text).lower()
-
-    @staticmethod
-    def compute_threshold(n):
-        if n <= 100:
-            thresh = n * 0.40
-        elif n > 100 and n <= 150:
-            thresh = n * 0.35
-        elif n > 150 and n <= 200:
-            thresh = n * 0.25
-        elif n > 200 and n <= 250:
-            thresh = n * 0.2
-        elif n > 250 and n <= 350:
-            thresh = n * 0.15
-        else:
-            thresh = n * 0.10
-        return thresh
-
     def LLM_call(self, state, flow_config, llm):
         response = self._generate(
             example=state.example,
@@ -115,79 +77,52 @@ class SchemaRetriever(UtteranceNodeBase):
                     state.example.coi_table = table
                     state.example.db_schema = state.example.spider_schema[table]
                     state.example.dataset_columns = state.example.spider_columns[table]
-                    if (
-                        flow_config.retrieval_type == SettingKey.DENSE_RETRIEVAL
-                        or flow_config.retrieval_type == SettingKey.HYBRID_RETRIEVAL
-                    ):
-                        key = next(iter(state.parser_result["selected"][m]))
-
-                        # this string processing is linked with retriever - dataset name mapping to generated knowlededge base
-                        if state.example.db_id is not None:
-                            dataset = state.example.db_id + key
-                            state.example.dataset = dataset
-                            threshold = round(
-                                SchemaRetriever.compute_threshold(
-                                    len(state.example.spider_columns[key])
-                                )
-                            )
-                            ### 1-3 are included to include all the columns - this should be removed if retriver is use
-                            subset_columns = state.example.spider_columns[key]  # 1
-                            subset_columns = [item.lower() for item in subset_columns]  # 2
-                            state.example.subset_columns = subset_columns  # 3
-
-                        else:
-                            dataset = state.example.dataset
-                            threshold = round(
-                                SchemaRetriever.compute_threshold(
-                                    len(state.example.dataset_columns)
-                                )
-                            )
-                            ### 1-5 below are applicable to spider set as well, but for now using all the columns
-                            dataset = SchemaRetriever.process_dataset_name(dataset)  # 1
-                            state.example.coi = state.example.cois[m]  # 2
-                            subset_columns = flow_config.db.search(
-                                state.example.coi, dataset, top_k=threshold
-                            )  # 3
-                            subset_columns, scores = SchemaRetriever.extract_columns_from_dense(
-                                subset_columns
-                            )  # 4
-                            state.example.subset_columns = subset_columns  # 5
-
-                    if (
-                        flow_config.retrieval_type == SettingKey.LLM_RETRIEVAL
-                        or flow_config.retrieval_type == SettingKey.HYBRID_RETRIEVAL
-                    ):
-                        if flow_config.retrieval_type == SettingKey.LLM_RETRIEVAL:
-                            self.prompt_key = UtterancePromptConfigKey.LLM_RETRIEVAL
-                        else:
+                    if flow_config.retrieval_type != SettingKey.LLM_RETRIEVAL:
+                        hits = flow_config.schema_index.search(
+                            str(state.example.coi), state.example.db_id, table
+                        )
+                        state.example.retrieval_hits[m] = hits
+                        subset_columns = [hit["column"] for hit in hits]
+                        state.example.subset_columns = subset_columns
+                        if flow_config.schema_retrieval.llm_filter and subset_columns:
                             self.prompt_key = (
                                 UtterancePromptConfigKey.HYBRID_SEMANTIC_RETRIEVAL
                                 if flow_config.similarity_criteria == SettingKey.SEMANTIC_SIMILARITY
                                 else UtterancePromptConfigKey.HYBRID_LEXICAL_RETRIEVAL
                             )
                             self.output_pydantic_object = RetrieverClassificationResponse
-                        ### this added for multiple retrievers
-                        subset_columns = []
-                        llm_filter_response[m] = {}
-
-                        for i, llm in enumerate(flow_config.llm_retrieval):
+                            approved = set()
+                            llm_filter_response[m] = {}
+                            for judge, llm in enumerate(flow_config.llm_retrieval):
+                                output = self.LLM_call(state, flow_config, llm)
+                                llm_filter_response[m][judge] = output
+                                if isinstance(output.response, list):
+                                    for item in output.response:
+                                        if str(item.get("outcome", "")).casefold() == "valid":
+                                            name = item.get("column_name", item.get("name", ""))
+                                            approved.add(str(name).casefold())
+                            subset_columns = [
+                                name for name in subset_columns if name.casefold() in approved
+                            ]
+                    else:
+                        self.prompt_key = UtterancePromptConfigKey.LLM_RETRIEVAL
+                        self.output_pydantic_object = RetrieverResponse
+                        candidates = []
+                        for llm in flow_config.llm_retrieval:
                             output = self.LLM_call(state, flow_config, llm)
-
-                            if (
-                                flow_config.retrieval_type == SettingKey.HYBRID_RETRIEVAL
-                                and output.response != "null"
-                            ):
-                                subset_columns.extend(
-                                    SchemaRetriever.extract_valid_columns(output.response)
-                                )
-                                llm_filter_response[m][i] = output
-
-                            elif (
-                                flow_config.retrieval_type == SettingKey.LLM_RETRIEVAL
-                                and output.group != "null"
-                            ):
-                                subset_columns.extend(output.group)
-                        subset_columns = list(set(subset_columns))
+                            if isinstance(output.group, list):
+                                candidates.extend(output.group)
+                        # Resolve model-produced names only against physical schema columns.
+                        canonical = {
+                            name.casefold(): name for name in state.example.dataset_columns
+                        }
+                        subset_columns = list(
+                            dict.fromkeys(
+                                canonical[name.casefold()]
+                                for name in candidates
+                                if name.casefold() in canonical
+                            )
+                        )
                     response[m] = RetrieverResponse(group=subset_columns, coi=state.example.cois[m])
                 # Value ambiguity
                 elif flow_config.ac_type in (

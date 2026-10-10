@@ -183,7 +183,7 @@ def test_malformed_model_output_cannot_be_accepted(generation_config, monkeypatc
 
 def test_all_example_configs_validate():
     paths = sorted((ROOT / "configs").glob("*.json"))
-    assert len(paths) == 12
+    assert len(paths) == 14
     for path in paths:
         config = ConversationGeneratorTask.model_validate_json(path.read_text())
         assert config.max_examples == 1

@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import random
 import sys
+from pydantic import ValidationError
 
 from clarity.datasets import DATASETS, validate_dataset
 
@@ -80,8 +81,22 @@ def main(argv=None):
     command.add_argument("--output", type=Path, required=True)
     command.add_argument("--seed", type=int, default=10)
     command.add_argument("--batch", action="store_true")
+    command = commands.add_parser(
+        "retrieve", help="Query conventional schema retrieval without an LLM"
+    )
+    command.add_argument("--config", type=Path, required=True)
+    command.add_argument("--db-id", required=True)
+    command.add_argument("--table", required=True)
+    command.add_argument("--query", required=True)
     args = parser.parse_args(argv)
     try:
+        if args.command == "retrieve":
+            from clarity.retrieval.factory import index_from_task_file
+
+            index = index_from_task_file(args.config)
+            hits = index.search(args.query, args.db_id, args.table)
+            print(json.dumps({"hits": hits, "index": index.last_index_metadata}, indent=2))
+            return 0
         if args.command in {"validate", "stats"}:
             result = [
                 validate_dataset(args.data_root, dataset)
@@ -92,6 +107,10 @@ def main(argv=None):
         result = generate(args.config, args.output, args.seed, args.batch)
         print(json.dumps(result, indent=2))
         return 1 if result["errors"] else 0
+    except ValidationError as error:
+        locations = [".".join(map(str, item["loc"])) for item in error.errors(include_input=False)]
+        print("clarity: invalid configuration fields: " + ", ".join(locations), file=sys.stderr)
+        return 1
     except (ValueError, OSError, KeyError) as error:
         print(f"clarity: {error}", file=sys.stderr)
         return 1

@@ -1,5 +1,7 @@
 # Local verification
 
+Release 0.2.0 has 49 passing regression tests in both the source and installed-wheel environments and adds conventional hybrid schema retrieval. Its [dedicated report](provenance/hybrid-retrieval/REPORT.md) records live local embeddings, two live graph cases, and database checks. Remote embedding providers have mocked contract coverage only. The earlier 0.1.1 evidence below is historical.
+
 Validation was performed on October 9, 2026 using Python 3.12.10 on macOS. The dependency versions are pinned in `requirements-lock.txt`. Machine-readable dataset, test and archive evidence is stored under `provenance/`.
 
 Release 0.1.1 has **33 passing regression tests** in both the source environment and a separately installed wheel, including Codex transport checks and a read-only SQLite verifier. Dataset validation covers all 19,268 final annotations and all 8,534 seed records. Original hashes for all 49 selected source artifacts were checked and remained unchanged. The release receipts record source, installed-wheel and archive validation separately. Release 0.1.0 previously passed 28 tests; its evidence is retained in the earlier archives.

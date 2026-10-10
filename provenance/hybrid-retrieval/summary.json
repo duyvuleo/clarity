@@ -1,0 +1,31 @@
+{
+  "release_version": "0.2.0",
+  "date": "2026-10-09",
+  "backend": "local cosine + BM25 with weighted reciprocal-rank fusion",
+  "embedding": {
+    "provider": "sentence-transformers",
+    "model": "sentence-transformers/all-MiniLM-L6-v2",
+    "revision": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+    "dimensions": 384,
+    "device": "cpu"
+  },
+  "fusion": {
+    "alpha": 0.5,
+    "rrf_k": 60,
+    "top_k": 25,
+    "candidate_k": 50
+  },
+  "llm_filter": false,
+  "remote_embedding_provider_live_validation": false,
+  "live_generation": {
+    "cases": 2,
+    "model_calls": 28,
+    "model_call_failures": 0,
+    "tool_use_events": 0,
+    "conversations": 10,
+    "terminal_selects_executed": 8,
+    "helpful_matches": "4/4",
+    "source_database_hashes_verified": true
+  },
+  "scope": "two frozen single-facet semantic column ambiguity smoke cases; not a corpus score"
+}

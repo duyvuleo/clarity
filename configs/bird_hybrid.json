@@ -1,0 +1,112 @@
+{
+  "name": "clarity-bird-hybrid",
+  "dataset": "bird",
+  "data_root": "../data",
+  "train_data_path": null,
+  "prompt_config_path": "packaged:generation.yaml",
+  "description": "Generate new benchmark records from the released local seed snapshot.",
+  "data_loader": {
+    "name": "clarity.generation.data_loader:UtteranceDataLoader"
+  },
+  "llm_retrieval": [],
+  "llm_gen_term": {
+    "vendor": "openai-compatible",
+    "model_env": "CLARITY_MODEL",
+    "temperature": 0,
+    "max_tokens": 4096
+  },
+  "llm_gen_utt": {
+    "vendor": "openai-compatible",
+    "model_env": "CLARITY_MODEL",
+    "temperature": 0,
+    "max_tokens": 4096
+  },
+  "llm_eval_term": [
+    {
+      "vendor": "openai-compatible",
+      "model_env": "CLARITY_MODEL",
+      "temperature": 0,
+      "max_tokens": 4096
+    },
+    {
+      "vendor": "openai-compatible",
+      "model_env": "CLARITY_MODEL",
+      "temperature": 0,
+      "max_tokens": 4096
+    },
+    {
+      "vendor": "openai-compatible",
+      "model_env": "CLARITY_MODEL",
+      "temperature": 0,
+      "max_tokens": 4096
+    }
+  ],
+  "llm_eval_utt": [
+    {
+      "vendor": "openai-compatible",
+      "model_env": "CLARITY_MODEL",
+      "temperature": 0,
+      "max_tokens": 4096
+    },
+    {
+      "vendor": "openai-compatible",
+      "model_env": "CLARITY_MODEL",
+      "temperature": 0,
+      "max_tokens": 4096
+    },
+    {
+      "vendor": "openai-compatible",
+      "model_env": "CLARITY_MODEL",
+      "temperature": 0,
+      "max_tokens": 4096
+    }
+  ],
+  "llm_sample_selectors": [
+    {
+      "vendor": "openai-compatible",
+      "model_env": "CLARITY_MODEL",
+      "temperature": 0,
+      "max_tokens": 4096
+    },
+    {
+      "vendor": "openai-compatible",
+      "model_env": "CLARITY_MODEL",
+      "temperature": 0,
+      "max_tokens": 4096
+    },
+    {
+      "vendor": "openai-compatible",
+      "model_env": "CLARITY_MODEL",
+      "temperature": 0,
+      "max_tokens": 4096
+    }
+  ],
+  "batch_size": 1,
+  "recursion_limit": 100,
+  "ac_type": "column_ambiguity",
+  "retrieval_type": "hybrid",
+  "multifacet": 1,
+  "similarity_criteria": "semantic",
+  "max_examples": 1,
+  "schema_retrieval": {
+    "embedding": {
+      "provider": "sentence-transformers",
+      "model": "sentence-transformers/all-MiniLM-L6-v2",
+      "device": "cpu",
+      "batch_size": 32,
+      "cache_folder": "../.cache/embedding-models",
+      "revision": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41"
+    },
+    "sparse": {
+      "k1": 1.5,
+      "b": 0.75
+    },
+    "fusion": "rrf",
+    "alpha": 0.5,
+    "top_k": 25,
+    "candidate_k": 50,
+    "rrf_k": 60,
+    "cache_dir": "../.cache/schema-index",
+    "llm_filter": false
+  }
+}

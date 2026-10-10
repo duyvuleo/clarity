@@ -1,0 +1,318 @@
+[
+  {
+    "db_id": "farm",
+    "selected_bindings": [
+      [
+        "farm",
+        "Total_Horses"
+      ]
+    ],
+    "schema_grounding_passed": true,
+    "source_seed_preserved": true,
+    "parent_execution": {
+      "row_count": 8,
+      "column_count": 1,
+      "ordered_sha256": "a07d930841850d92b9fa6b6c2456eb7815ca0b879dc2169dca4e4cf62407e08a",
+      "bag_sha256": "b613f4c50b46fb075f85bdac4851b1ed6db8ec8044882ae5b1950b6d1e4ba3f2"
+    },
+    "annotation_derived_candidate_executions": [
+      {
+        "table": "farm",
+        "column": "Total_Horses",
+        "derived_sql": "SELECT Total_Horses FROM farm ORDER BY Total_Horses ASC",
+        "execution": {
+          "row_count": 8,
+          "column_count": 1,
+          "ordered_sha256": "a07d930841850d92b9fa6b6c2456eb7815ca0b879dc2169dca4e4cf62407e08a",
+          "bag_sha256": "b613f4c50b46fb075f85bdac4851b1ed6db8ec8044882ae5b1950b6d1e4ba3f2"
+        },
+        "same_result_as_parent": true
+      },
+      {
+        "table": "farm",
+        "column": "Total_Cattle",
+        "derived_sql": "SELECT Total_Cattle FROM farm ORDER BY Total_Cattle ASC",
+        "execution": {
+          "row_count": 8,
+          "column_count": 1,
+          "ordered_sha256": "7cffae7bb15143a7d65ff76e0af9853f8b42af3d80969e690585e3851ad13df7",
+          "bag_sha256": "a36a180302ee0b24fe7655a0672abe30b9f056b0dd5e65f0fb2cd694af4adddd"
+        },
+        "same_result_as_parent": false
+      },
+      {
+        "table": "farm",
+        "column": "Working_Horses",
+        "derived_sql": "SELECT Working_Horses FROM farm ORDER BY Working_Horses ASC",
+        "execution": {
+          "row_count": 8,
+          "column_count": 1,
+          "ordered_sha256": "c09740de7321bd8e0f3b16ffadc3ceda7fa95c31bf61a05fb11931dbe72ebaf3",
+          "bag_sha256": "aec1e380a8d3ecb5d7939728f1981551f00ce4b70ffa6d59fa6620dba508f857"
+        },
+        "same_result_as_parent": false
+      },
+      {
+        "table": "farm",
+        "column": "Sheep_and_Goats",
+        "derived_sql": "SELECT Sheep_and_Goats FROM farm ORDER BY Sheep_and_Goats ASC",
+        "execution": {
+          "row_count": 8,
+          "column_count": 1,
+          "ordered_sha256": "c57e146b7507ce80d32d2b0cf3bb520a021e02aa8f90a8869f6b4c71aaaa595f",
+          "bag_sha256": "fe7a497cba80e581af8e304b3aec6f26a06d3491e20df0b238dccdea464c083e"
+        },
+        "same_result_as_parent": false
+      },
+      {
+        "table": "farm",
+        "column": "Bulls",
+        "derived_sql": "SELECT Bulls FROM farm ORDER BY Bulls ASC",
+        "execution": {
+          "row_count": 8,
+          "column_count": 1,
+          "ordered_sha256": "9ef85796e2a898f025cbcd2fdae838df11b43069037c85bacc681afc917c4c62",
+          "bag_sha256": "76efd306b0d2cd94ab23fbc44b4d675c08c5a4b2c40dbd6dacc7c2164bfc5a34"
+        },
+        "same_result_as_parent": false
+      },
+      {
+        "table": "farm",
+        "column": "Cows",
+        "derived_sql": "SELECT Cows FROM farm ORDER BY Cows ASC",
+        "execution": {
+          "row_count": 8,
+          "column_count": 1,
+          "ordered_sha256": "01e60aa9e7b0db2b65a311754a0d2f6856c3e7b96a0502d5917a7341c2d828b2",
+          "bag_sha256": "266d99f6699b9279ff3678b6b0a58350464de7a73efc9bde12ff2e5f1773f77c"
+        },
+        "same_result_as_parent": false
+      },
+      {
+        "table": "farm",
+        "column": "Pigs",
+        "derived_sql": "SELECT Pigs FROM farm ORDER BY Pigs ASC",
+        "execution": {
+          "row_count": 8,
+          "column_count": 1,
+          "ordered_sha256": "0f3f5ce4f4fffe03f3dcd8d22e8a062bab9907b09467378790bfcd0e94b9553c",
+          "bag_sha256": "46668b83e54c5579b17e2de271358857ee1e69ea76c0667591329b2d4c42a47d"
+        },
+        "same_result_as_parent": false
+      },
+      {
+        "table": "farm",
+        "column": "Oxen",
+        "derived_sql": "SELECT Oxen FROM farm ORDER BY Oxen ASC",
+        "execution": {
+          "row_count": 8,
+          "column_count": 1,
+          "ordered_sha256": "e2b870d9a73f06e2b89e7f56b10c0599f30b3d798832faff8ee22a92472fa6c4",
+          "bag_sha256": "12a24e1364e6bd8b5ec38a7e5d057c9b6cf90d0f4ae883c57ae8f527aa67e259"
+        },
+        "same_result_as_parent": false
+      }
+    ],
+    "sample_selector_accepted": true,
+    "conversation_checks": [
+      {
+        "scenario": "concise_helpful",
+        "turn_count": 4,
+        "structure_valid": true,
+        "terminal_sql_present": true,
+        "terminal_sql": "SELECT Total_Horses FROM farm ORDER BY Total_Horses ASC",
+        "terminal_execution": {
+          "row_count": 8,
+          "column_count": 1,
+          "ordered_sha256": "a07d930841850d92b9fa6b6c2456eb7815ca0b879dc2169dca4e4cf62407e08a",
+          "bag_sha256": "b613f4c50b46fb075f85bdac4851b1ed6db8ec8044882ae5b1950b6d1e4ba3f2"
+        },
+        "matches_parent_result": true,
+        "parent_reference_applies": true,
+        "helpful_sql_check_passed": true
+      },
+      {
+        "scenario": "not_helpful_-_no_column",
+        "turn_count": 4,
+        "structure_valid": true,
+        "terminal_sql_present": false,
+        "parent_reference_applies": false
+      },
+      {
+        "scenario": "not_helpful_-_random_column",
+        "turn_count": 4,
+        "structure_valid": true,
+        "terminal_sql_present": true,
+        "terminal_sql": "SELECT Cows FROM farm ORDER BY Cows ASC",
+        "terminal_execution": {
+          "row_count": 8,
+          "column_count": 1,
+          "ordered_sha256": "01e60aa9e7b0db2b65a311754a0d2f6856c3e7b96a0502d5917a7341c2d828b2",
+          "bag_sha256": "266d99f6699b9279ff3678b6b0a58350464de7a73efc9bde12ff2e5f1773f77c"
+        },
+        "matches_parent_result": false,
+        "parent_reference_applies": false
+      },
+      {
+        "scenario": "partially_helpful",
+        "turn_count": 4,
+        "structure_valid": true,
+        "terminal_sql_present": true,
+        "terminal_sql": "SELECT Total_Horses FROM farm ORDER BY Total_Horses ASC",
+        "terminal_execution": {
+          "row_count": 8,
+          "column_count": 1,
+          "ordered_sha256": "a07d930841850d92b9fa6b6c2456eb7815ca0b879dc2169dca4e4cf62407e08a",
+          "bag_sha256": "b613f4c50b46fb075f85bdac4851b1ed6db8ec8044882ae5b1950b6d1e4ba3f2"
+        },
+        "matches_parent_result": true,
+        "parent_reference_applies": false
+      },
+      {
+        "scenario": "verbose_helpful",
+        "turn_count": 4,
+        "structure_valid": true,
+        "terminal_sql_present": true,
+        "terminal_sql": "SELECT Total_Horses FROM farm ORDER BY Total_Horses ASC",
+        "terminal_execution": {
+          "row_count": 8,
+          "column_count": 1,
+          "ordered_sha256": "a07d930841850d92b9fa6b6c2456eb7815ca0b879dc2169dca4e4cf62407e08a",
+          "bag_sha256": "b613f4c50b46fb075f85bdac4851b1ed6db8ec8044882ae5b1950b6d1e4ba3f2"
+        },
+        "matches_parent_result": true,
+        "parent_reference_applies": true,
+        "helpful_sql_check_passed": true
+      }
+    ],
+    "helpful_checks_passed": true,
+    "helpful_checks": 2,
+    "dataset": "spider",
+    "source_seed_index": 20,
+    "source_database_sha256": "4e2be63e448a8cee55564ee22e3a7596102338caabfbb20c61db1882389cf576",
+    "source_database_hash_verified": true,
+    "author_database_snapshot_identity_verified": false
+  },
+  {
+    "db_id": "card_games",
+    "selected_bindings": [
+      [
+        "cards",
+        "power"
+      ]
+    ],
+    "schema_grounding_passed": true,
+    "source_seed_preserved": true,
+    "parent_execution": {
+      "row_count": 1,
+      "column_count": 1,
+      "ordered_sha256": "5ef46fa0e71f542ed452be51b6fd93516a998c58e275d92188ebe259b12e0d3c",
+      "bag_sha256": "d6e0c438ac9d724c68e8932294640d009c875bdb710eba18562d727960cc9413"
+    },
+    "annotation_derived_candidate_executions": [
+      {
+        "table": "cards",
+        "column": "power",
+        "derived_sql": "SELECT COUNT(*) FROM cards WHERE power = '*'",
+        "execution": {
+          "row_count": 1,
+          "column_count": 1,
+          "ordered_sha256": "5ef46fa0e71f542ed452be51b6fd93516a998c58e275d92188ebe259b12e0d3c",
+          "bag_sha256": "d6e0c438ac9d724c68e8932294640d009c875bdb710eba18562d727960cc9413"
+        },
+        "same_result_as_parent": true
+      },
+      {
+        "table": "cards",
+        "column": "toughness",
+        "derived_sql": "SELECT COUNT(*) FROM cards WHERE toughness = '*'",
+        "execution": {
+          "row_count": 1,
+          "column_count": 1,
+          "ordered_sha256": "cb8f9d61d8e56bde7cd5917b9050e094517c0354ae30bfe0f0afc4fc21718294",
+          "bag_sha256": "e916ed18ea2956f10271ed5b0cca3c2cfc218dcbdba5c74020a5b78cc4be76c1"
+        },
+        "same_result_as_parent": false
+      }
+    ],
+    "sample_selector_accepted": true,
+    "conversation_checks": [
+      {
+        "scenario": "concise_helpful",
+        "turn_count": 4,
+        "structure_valid": true,
+        "terminal_sql_present": true,
+        "terminal_sql": "SELECT COUNT(*) FROM cards WHERE power = '*'",
+        "terminal_execution": {
+          "row_count": 1,
+          "column_count": 1,
+          "ordered_sha256": "5ef46fa0e71f542ed452be51b6fd93516a998c58e275d92188ebe259b12e0d3c",
+          "bag_sha256": "d6e0c438ac9d724c68e8932294640d009c875bdb710eba18562d727960cc9413"
+        },
+        "matches_parent_result": true,
+        "parent_reference_applies": true,
+        "helpful_sql_check_passed": true
+      },
+      {
+        "scenario": "not_helpful_-_no_column",
+        "turn_count": 4,
+        "structure_valid": true,
+        "terminal_sql_present": false,
+        "parent_reference_applies": false
+      },
+      {
+        "scenario": "not_helpful_-_random_column",
+        "turn_count": 4,
+        "structure_valid": true,
+        "terminal_sql_present": true,
+        "terminal_sql": "SELECT COUNT(*) FROM cards WHERE toughness = '*'",
+        "terminal_execution": {
+          "row_count": 1,
+          "column_count": 1,
+          "ordered_sha256": "cb8f9d61d8e56bde7cd5917b9050e094517c0354ae30bfe0f0afc4fc21718294",
+          "bag_sha256": "e916ed18ea2956f10271ed5b0cca3c2cfc218dcbdba5c74020a5b78cc4be76c1"
+        },
+        "matches_parent_result": false,
+        "parent_reference_applies": false
+      },
+      {
+        "scenario": "partially_helpful",
+        "turn_count": 4,
+        "structure_valid": true,
+        "terminal_sql_present": true,
+        "terminal_sql": "SELECT COUNT(*) FROM cards WHERE power = '*'",
+        "terminal_execution": {
+          "row_count": 1,
+          "column_count": 1,
+          "ordered_sha256": "5ef46fa0e71f542ed452be51b6fd93516a998c58e275d92188ebe259b12e0d3c",
+          "bag_sha256": "d6e0c438ac9d724c68e8932294640d009c875bdb710eba18562d727960cc9413"
+        },
+        "matches_parent_result": true,
+        "parent_reference_applies": false
+      },
+      {
+        "scenario": "verbose_helpful",
+        "turn_count": 4,
+        "structure_valid": true,
+        "terminal_sql_present": true,
+        "terminal_sql": "SELECT COUNT(*) FROM cards WHERE power = '*'",
+        "terminal_execution": {
+          "row_count": 1,
+          "column_count": 1,
+          "ordered_sha256": "5ef46fa0e71f542ed452be51b6fd93516a998c58e275d92188ebe259b12e0d3c",
+          "bag_sha256": "d6e0c438ac9d724c68e8932294640d009c875bdb710eba18562d727960cc9413"
+        },
+        "matches_parent_result": true,
+        "parent_reference_applies": true,
+        "helpful_sql_check_passed": true
+      }
+    ],
+    "helpful_checks_passed": true,
+    "helpful_checks": 2,
+    "dataset": "bird",
+    "source_seed_index": 357,
+    "source_database_sha256": "c98bdb57fe7474da798b407785544b9af0daaad5d61fd21e2a73309493bc1227",
+    "source_database_hash_verified": true,
+    "author_database_snapshot_identity_verified": false
+  }
+]

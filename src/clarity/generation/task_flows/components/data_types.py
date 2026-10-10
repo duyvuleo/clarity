@@ -1,7 +1,9 @@
 import sys
 from enum import Enum
 
-from pydantic import Field
+from pydantic import Field, model_validator
+
+from clarity.retrieval.config import RetrievalConfig
 
 from clarity.core.flows.components.data_types import (
     ClassConfig,
@@ -18,10 +20,12 @@ class ConversationGeneratorTask(Task, extra="allow"):
     data_root: str = "../data"
     max_examples: int | None = Field(default=None, ge=1)
     multifacet: int = Field(default=1, ge=1, le=3)
-    retrieval_type: str = Field(default="llm", pattern="^(llm|hybrid|dense)$")
+    retrieval_type: str = Field(default="llm", pattern="^(llm|hybrid|dense|sparse)$")
+    schema_retrieval: RetrievalConfig = Field(default_factory=RetrievalConfig)
     similarity_criteria: str = "lexical"
     llm_retrieval: list[dict] = Field(
-        description="A list of configuration for the llm as schema retriever."
+        default_factory=list,
+        description="Optional model configurations for retrieval or post-filtering.",
     )
 
     llm_gen_term: dict = Field(description="Configuration for the llm as term generator.")
@@ -46,6 +50,20 @@ class ConversationGeneratorTask(Task, extra="allow"):
         default="None",
         description="Type of ambiguity needs to be introduced",
     )
+
+    @model_validator(mode="after")
+    def validate_retrieval(self):
+        if self.ac_type == "column_ambiguity":
+            dense = self.retrieval_type == "dense" or (
+                self.retrieval_type == "hybrid" and self.schema_retrieval.alpha > 0
+            )
+            if dense and self.schema_retrieval.embedding is None:
+                raise ValueError("Configure schema_retrieval.embedding for dense/hybrid search")
+            if (
+                self.retrieval_type == "llm" or self.schema_retrieval.llm_filter
+            ) and not self.llm_retrieval:
+                raise ValueError("llm_retrieval is required for LLM retrieval or post-filtering")
+        return self
 
 
 class ConversationExample(Example):
@@ -94,6 +112,7 @@ class ConversationExample(Example):
     ac_group: list | None = None
     iteration: int = 0
     retriever_decision: list[bool] | None = None
+    retrieval_hits: dict = Field(default_factory=dict)
     term_decision: list[bool] | None = None
 
 

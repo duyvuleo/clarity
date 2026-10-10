@@ -10,7 +10,7 @@
       "source_sha256": "97ea5da90c9bef7103cc4d9b424a5199a0d99053b5ec64643ad91b05122d1edf",
       "release": "src/clarity/generation/task_flows/components/data_types.py",
       "transformation": "package imports and duplicate declarations; further fixes documented in CHANGELOG.md",
-      "release_sha256": "d3631a840b81b9e15f9903a204372bf2760ddee9f55f3a3394e8f09c5320ef40",
+      "release_sha256": "01eae7d657f618ed16956a325d72c14b0a823b8f69e1c0dd1d2df21f2e00c5a8",
       "source_id": "artifact-b71d6ca6b7026f23"
     },
     {
@@ -31,7 +31,7 @@
       "source_sha256": "5084f48107fe823d2487b68a35d5a3beb9a4240f4f653df2a37fd838cc637ff4",
       "release": "src/clarity/generation/task_flows/components/edges/retriever_decision.py",
       "transformation": "package imports and duplicate declarations; further fixes documented in CHANGELOG.md",
-      "release_sha256": "fd39f69a4abd4b4795cc3f31b75835aa24ce8f9f064faaf0301dd92857aa8dae",
+      "release_sha256": "3d76d7ab63e8c5147a0a0847db2669805a9b9cf3cf2f6eebd1a21956f5270450",
       "source_id": "artifact-6d351e9f500294a7"
     },
     {
@@ -129,7 +129,7 @@
       "source_sha256": "e0f591bf5e17d7079cc5b22e8b895d710eb050cdab02eb3fbbb199a41125b9a7",
       "release": "src/clarity/generation/task_flows/components/nodes/retreiver.py",
       "transformation": "package imports and duplicate declarations; further fixes documented in CHANGELOG.md",
-      "release_sha256": "eb70ebd5739f15a40e06aec435c3253c2ce4cb189aa600047d8c22bde633a7dc",
+      "release_sha256": "b00abce8d58cfe1b3753e3dbf8e3cc9f8e63f5c33aef7c70dd2b88e14c1db910",
       "source_id": "artifact-48396eae02a18198"
     },
     {
@@ -185,7 +185,7 @@
       "source_sha256": "b17b59cc7d5a1df6a1e118b805f90533a16c4a7634cdfbab73346a2a7f41bd1b",
       "release": "src/clarity/generation/task_flows/flows/base.py",
       "transformation": "package imports and duplicate declarations; further fixes documented in CHANGELOG.md",
-      "release_sha256": "c98a56b00f0463a2a9598be0b0ea409f293183745f7484cd192d8daddb7f9f52",
+      "release_sha256": "793c7e72c31889efdb55234fbda3a27d86082740d5c5e26de050a4a84caedf7e",
       "source_id": "artifact-952580044c81f9ac"
     },
     {
@@ -360,5 +360,5 @@
       "source_id": "artifact-63a6a03151afc7c6"
     }
   ],
-  "release_version": "0.1.1"
+  "release_version": "0.2.0"
 }

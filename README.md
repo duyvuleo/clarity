@@ -28,13 +28,15 @@ python -m pytest
 | `schemas.json`, `columns.json` | Catalogs filtered to the selected benchmark database IDs |
 | `values.json.gz` | Optional compressed database-value catalog for value experiments |
 
-The main archive contains code, annotations, seeds, schemas and columns. Extract the separate `clarity-values-0.1.1.zip` beside it to add the value catalogs. Column generation and annotation analysis do not require that asset. The BIRD value catalog is large; allow several gigabytes of memory when loading it. The value catalogs are ignored by Git so they can be distributed as release assets rather than oversized repository files.
+The main archive contains code, annotations, seeds, schemas and columns. Extract the separate `clarity-values-0.2.0.zip` beside it to add the value catalogs. Column generation and annotation analysis do not require that asset. The BIRD value catalog is large; allow several gigabytes of memory when loading it. The value catalogs are ignored by Git so they can be distributed as release assets rather than oversized repository files.
 
 SQLite databases are not bundled. Obtain them from the [Spider](https://yale-lily.github.io/spider) and [BIRD](https://bird-bench.github.io/) maintainers if you need SQL execution. The value catalogs support generation; they do not substitute for executable databases.
 
 See [DATA_CARD.md](DATA_CARD.md) for fields and interpretation limits, and [provenance/source-manifest.json](provenance/source-manifest.json) for exact source hashes and transformations.
 
 ## Generate new conversations
+
+Conventional dense + BM25 schema retrieval is available through [the hybrid configurations and guide](SCHEMA_RETRIEVAL.md). Embedding provider/model, fusion weight, top-k and optional LLM filtering are configurable. Use `clarity retrieve` to inspect rankings without generation-model credentials.
 
 Each config in `configs/` starts with one seed to keep trial runs small. Set `max_examples` to a larger integer, or `null` for the full local seed file. Set `multifacet` to 1, 2 or 3. Choose lexical/semantic column ambiguity, column confusion, value confusion, or single/multiple-column value ambiguity. In this historical implementation, “confusion” denotes an unanswerability setting.
 
@@ -63,3 +65,5 @@ Release 0.1.1 also includes a [live Codex smoke test](provenance/live-validation
 Code and original software documentation use **MIT**, as selected for this release. The Spider/BIRD-derived records and catalogs use **CC BY-SA 4.0** with upstream attribution. The MIT software license does not replace the data terms. See [DATA_LICENSE.md](DATA_LICENSE.md) and [NOTICE.md](NOTICE.md).
 
 Please cite CLARITY and the relevant source benchmark when using the release. [CITATION.cff](CITATION.cff) contains the CLARITY reference. [CHANGELOG.md](CHANGELOG.md) documents release-copy fixes and refactoring.
+
+Release 0.2.0 includes [hybrid retrieval verification](provenance/hybrid-retrieval/REPORT.md), using pinned pretrained embeddings in the live Spider/BIRD generation graph. The preceding LLM-retrieval validation remains available for comparison.

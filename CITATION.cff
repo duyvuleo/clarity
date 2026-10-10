@@ -2,7 +2,7 @@ cff-version: 1.2.0
 message: "Please cite CLARITY and the relevant upstream benchmark when using this release."
 title: "CLARITY: A Framework and Benchmark for Conversational Language Ambiguity and Unanswerability in Interactive NL2SQL Systems"
 type: software
-version: 0.1.1
+version: 0.2.0
 date-released: 2026-10-09
 url: https://arxiv.org/abs/2604.22313
 license: MIT

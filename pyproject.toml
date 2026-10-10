@@ -4,13 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "clarity-nl2sql"
-version = "0.1.1"
+version = "0.2.0"
 description = "CLARITY benchmark and conversational NL2SQL ambiguity generation"
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
 authors = [{name = "CLARITY contributors"}]
 dependencies = [
+  "numpy>=1.26,<3",
   "langchain-core>=0.3.78,<0.4",
   "langchain-openai>=0.3.35,<0.4",
   "langgraph>=0.3.11,<0.4",
@@ -22,6 +23,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+hybrid = ["sentence-transformers>=3,<6"]
+oci-embeddings = ["oci>=2.187.2,<3"]
 dev = ["pytest>=8,<10", "pytest-socket>=0.7,<1", "ruff>=0.9,<1", "build>=1,<2"]
 
 [project.scripts]
