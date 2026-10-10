@@ -10,6 +10,6 @@ Attribute the CLARITY authors and the upstream benchmark authors, link the licen
 
 ## References
 
-- Tabinda Sarwar, Farhad Moghimifar, Cong Duy Vu Hoang, Xiaoxiao Ma, Shawn Chang Xu, Fahimeh Saleh, Poorya Zaremoodi, Avirup Sil, and Katrin Kirchhoff. 2026. *CLARITY: A Framework and Benchmark for Conversational Language Ambiguity and Unanswerability in Interactive NL2SQL Systems*. <https://arxiv.org/abs/2604.22313>.
+- Tabinda Sarwar, Farhad Moghimifar, Cong Duy Vu Hoang, Xiaoxiao Ma, Shawn Chang Xu, Fahimeh Saleh, Poorya Zaremoodi, Avirup Sil, and Katrin Kirchhoff. 2026. *CLARITY: A Framework and Benchmark for Conversational Language Ambiguity and Unanswerability in Interactive NL2SQL Systems*. <https://aclanthology.org/2026.acl-industry.86/>.
 - Tao Yu et al. 2018. *Spider: A Large-Scale Human-Labeled Dataset for Complex and Cross-Domain Semantic Parsing and Text-to-SQL Task*. <https://aclanthology.org/D18-1425/>. Dataset: <https://yale-lily.github.io/spider>.
 - Jinyang Li et al. 2023. *Can LLM Already Serve as A Database Interface? A BIg Bench for Large-Scale Database Grounded Text-to-SQLs*. <https://arxiv.org/abs/2305.03111>. Dataset: <https://bird-bench.github.io/>.

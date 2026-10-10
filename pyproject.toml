@@ -24,7 +24,7 @@ dependencies = [
 
 [project.urls]
 Repository = "https://github.com/duyvuleo/clarity"
-Paper = "https://arxiv.org/abs/2604.22313"
+Paper = "https://aclanthology.org/2026.acl-industry.86/"
 
 [project.optional-dependencies]
 hybrid = ["sentence-transformers>=3,<6"]
