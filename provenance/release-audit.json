@@ -1,0 +1,12 @@
+{
+  "allowlisted_files": 100,
+  "content_rules": [
+    "private_infrastructure",
+    "local_filesystem_path",
+    "private_key",
+    "token_literal"
+  ],
+  "findings": [],
+  "values_checked": true,
+  "verified_benchmark_content_exceptions": 199
+}

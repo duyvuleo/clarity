@@ -1,0 +1,363 @@
+{
+  "scope": [
+    "spider",
+    "bird"
+  ],
+  "source_commit": null,
+  "author_snapshot_identity": "unverified",
+  "files": [
+    {
+      "source_sha256": "97ea5da90c9bef7103cc4d9b424a5199a0d99053b5ec64643ad91b05122d1edf",
+      "release": "src/clarity/generation/task_flows/components/data_types.py",
+      "transformation": "package imports and duplicate declarations; further fixes documented in CHANGELOG.md",
+      "release_sha256": "d3631a840b81b9e15f9903a204372bf2760ddee9f55f3a3394e8f09c5320ef40",
+      "source_id": "artifact-b71d6ca6b7026f23"
+    },
+    {
+      "source_sha256": "1def72a38fd96ee0b2153b48d1b63f4beccb210da7e137c7d8a9ec7249747666",
+      "release": "src/clarity/generation/task_flows/components/edges/conv_evaluator_decision.py",
+      "transformation": "package imports and duplicate declarations; further fixes documented in CHANGELOG.md",
+      "release_sha256": "f3180de4c8d67b510974b95ecf6ac8aada75241e1acb62bafd3e7a4beee40313",
+      "source_id": "artifact-d09daabd66faad0f"
+    },
+    {
+      "source_sha256": "80b43b65faf94afed7672b4635f2552298dfb5bb5bcc393e6627bce1f4c7a479",
+      "release": "src/clarity/generation/task_flows/components/edges/parser_decision.py",
+      "transformation": "package imports and duplicate declarations; further fixes documented in CHANGELOG.md",
+      "release_sha256": "b0014205f8be8afa7572eca8dd0d280dc23df343cdd2e17bad138b2f238939a0",
+      "source_id": "artifact-6cab6cfd831481c2"
+    },
+    {
+      "source_sha256": "5084f48107fe823d2487b68a35d5a3beb9a4240f4f653df2a37fd838cc637ff4",
+      "release": "src/clarity/generation/task_flows/components/edges/retriever_decision.py",
+      "transformation": "package imports and duplicate declarations; further fixes documented in CHANGELOG.md",
+      "release_sha256": "fd39f69a4abd4b4795cc3f31b75835aa24ce8f9f064faaf0301dd92857aa8dae",
+      "source_id": "artifact-6d351e9f500294a7"
+    },
+    {
+      "source_sha256": "d397b72c184bc5cba3e0fa6cbee0677a3c57e298a678bb15537a44cca3378a14",
+      "release": "src/clarity/generation/task_flows/components/edges/term_decision.py",
+      "transformation": "package imports and duplicate declarations; further fixes documented in CHANGELOG.md",
+      "release_sha256": "8d506f7ebcd24ad21082e2d65dabb8d71ff1f5aa01cad42a57b911e42e4b1113",
+      "source_id": "artifact-4ec8da20f8472332"
+    },
+    {
+      "source_sha256": "d611654073c645b1293dc99753174be76600ce77255a40aa5fa2ce322fd54e84",
+      "release": "src/clarity/generation/task_flows/components/edges/term_evaluator_decision.py",
+      "transformation": "package imports and duplicate declarations; further fixes documented in CHANGELOG.md",
+      "release_sha256": "6401a6e0916afd3e277e108810750dcc2e5fab2021df8bf7aa9456d089c8d76d",
+      "source_id": "artifact-0bb1d8275cd59556"
+    },
+    {
+      "source_sha256": "c4dbca43f4b3712f98912132e309c2c97c4759bbfc205343eb7512fe4b2b02cb",
+      "release": "src/clarity/generation/task_flows/components/edges/utt_evaluator_decision.py",
+      "transformation": "package imports and duplicate declarations; further fixes documented in CHANGELOG.md",
+      "release_sha256": "5a746bf1bb25691bb48a4991252c15f98f216e0313bc158cbf8c954ed5719d0d",
+      "source_id": "artifact-fac930d7ee92d5b9"
+    },
+    {
+      "source_sha256": "9966c6d540b6dca6b4027cc80561525625db3876f37ab1f55e7ece79a30a6388",
+      "release": "src/clarity/generation/task_flows/components/nodes/ac_conv_evaluator.py",
+      "transformation": "package imports and duplicate declarations; further fixes documented in CHANGELOG.md",
+      "release_sha256": "bf4737a27552bf282591a3897b9a29c45ce155715f03585305a82f2be02f8c14",
+      "source_id": "artifact-512a4660638cf7c8"
+    },
+    {
+      "source_sha256": "05f0cbe2e2cec1dddbd0c85717a4114a95f79c96bfe45c33673be918c2396f27",
+      "release": "src/clarity/generation/task_flows/components/nodes/ac_conv_gen.py",
+      "transformation": "package imports and duplicate declarations; further fixes documented in CHANGELOG.md",
+      "release_sha256": "569f02179c10012a7a42ad231415787c6bf4ece8e6fce4b4e1f05981ec04d0be",
+      "source_id": "artifact-285c95725fa8e766"
+    },
+    {
+      "source_sha256": "cd99caad9e265893c68fa7cdd0b4e5133957a267a079e6803a6bbf5c6a49bde7",
+      "release": "src/clarity/generation/task_flows/components/nodes/ac_term_evaluator.py",
+      "transformation": "package imports and duplicate declarations; further fixes documented in CHANGELOG.md",
+      "release_sha256": "ae5ccb2fa8b052802e01793f10c6b901b024958b46087b4146bdce069cc14d92",
+      "source_id": "artifact-ce11cd2546501887"
+    },
+    {
+      "source_sha256": "e710b25ed7757249fa9693a7c0381af7642a613aa02d0d043a86bad35c4020cc",
+      "release": "src/clarity/generation/task_flows/components/nodes/ac_term_gen.py",
+      "transformation": "package imports and duplicate declarations; further fixes documented in CHANGELOG.md",
+      "release_sha256": "836393d7c58c5ab90999f5e2517dd0b99e689a3a4babbf1be48a786178042172",
+      "source_id": "artifact-d1ad354146b4912b"
+    },
+    {
+      "source_sha256": "40f45224b941d5c8ea63ddcdcbb93c51c8fff0c77cb298359005575ae1e39e32",
+      "release": "src/clarity/generation/task_flows/components/nodes/ac_utt_evaluator.py",
+      "transformation": "package imports and duplicate declarations; further fixes documented in CHANGELOG.md",
+      "release_sha256": "68fa1b2832ff885bd234790733ae7f51104262bd5b8e1f8b931d544b71b18307",
+      "source_id": "artifact-032436aa47e346cc"
+    },
+    {
+      "source_sha256": "d9b7523202a4efabec606b983f386cd9a15e78d1ea1778e3e5fa62aeae376d32",
+      "release": "src/clarity/generation/task_flows/components/nodes/ac_utt_gen.py",
+      "transformation": "package imports and duplicate declarations; further fixes documented in CHANGELOG.md",
+      "release_sha256": "850e778ffdd17c30bf454b411d6de2cb8b01c9c05f9581c598416342b3b87b4d",
+      "source_id": "artifact-07179fe387095faa"
+    },
+    {
+      "source_sha256": "bbb80f17c5aad55835a6cc7c82c1b0075bcd26872033b688c6d3fddfa18f0c43",
+      "release": "src/clarity/generation/task_flows/components/nodes/base.py",
+      "transformation": "package imports and duplicate declarations; further fixes documented in CHANGELOG.md",
+      "release_sha256": "0a6a133dfca78825794a182d875a0f81b7cddba0696c27d8d37f935b676bf261",
+      "source_id": "artifact-d5bbb4ae527a9181"
+    },
+    {
+      "source_sha256": "c60bd62aee8422870cd0854220c5ff5825707e60a680bba08e05cf70b9be10e0",
+      "release": "src/clarity/generation/task_flows/components/nodes/conv_aggregator.py",
+      "transformation": "package imports and duplicate declarations; further fixes documented in CHANGELOG.md",
+      "release_sha256": "d70ddc909ef08f9684533ccf9ffd75f70b5a9969dfce14eafc44b2db30b441fb",
+      "source_id": "artifact-22dee375edd40a05"
+    },
+    {
+      "source_sha256": "8d35e39071a7491092c1d9b5aabb49af99548e6951815aebd8b087789c096968",
+      "release": "src/clarity/generation/task_flows/components/nodes/conversation_writer.py",
+      "transformation": "package imports and duplicate declarations; further fixes documented in CHANGELOG.md",
+      "release_sha256": "6320bf784aefd45c526257eee7b62e64de6e524277f3005f48b31d8bcfc979f9",
+      "source_id": "artifact-9d351fae4a98f01c"
+    },
+    {
+      "source_sha256": "313fe85d29b40631a27a16f338e1b45664f6b3e3a714a3631f1ef3a61ff8fc39",
+      "release": "src/clarity/generation/task_flows/components/nodes/parser.py",
+      "transformation": "package imports and duplicate declarations; further fixes documented in CHANGELOG.md",
+      "release_sha256": "c8c043be46f7d9322b9b471db73d447a719ecd26a37a3682c09b78d9a0968167",
+      "source_id": "artifact-7591e8ee43a9a039"
+    },
+    {
+      "source_sha256": "e0f591bf5e17d7079cc5b22e8b895d710eb050cdab02eb3fbbb199a41125b9a7",
+      "release": "src/clarity/generation/task_flows/components/nodes/retreiver.py",
+      "transformation": "package imports and duplicate declarations; further fixes documented in CHANGELOG.md",
+      "release_sha256": "18ff60ff5c3ec9c5b9955e860226b4d8ff9b4c86221baa5a49fa430dceba9057",
+      "source_id": "artifact-48396eae02a18198"
+    },
+    {
+      "source_sha256": "90dd4cad7c68da3a992e18a4e6a3da9d568cae055c7f24cbac94befc6b8794b0",
+      "release": "src/clarity/generation/task_flows/components/nodes/sample_selector.py",
+      "transformation": "package imports and duplicate declarations; further fixes documented in CHANGELOG.md",
+      "release_sha256": "19a71b0828901d6a14f9a76bd8d59710ffeefce2e1ac3e8feff642eca05eb841",
+      "source_id": "artifact-8233838445cdac9e"
+    },
+    {
+      "source_sha256": "17872c68cc870401cb24f108f8eed74c185f1007f581d1a3afab33a92849a9de",
+      "release": "src/clarity/generation/task_flows/components/nodes/simple.py",
+      "transformation": "package imports and duplicate declarations; further fixes documented in CHANGELOG.md",
+      "release_sha256": "506bd161e667a1a1b72f186b8b17fcf28865970547d8cfde5920e9c49612417e",
+      "source_id": "artifact-fad17f75b7ae58d7"
+    },
+    {
+      "source_sha256": "38a73434aea38c5c110855435987f1e6430dae5eb8b459ac6d576e6022b668d4",
+      "release": "src/clarity/generation/task_flows/components/nodes/temp_node.py",
+      "transformation": "package imports and duplicate declarations; further fixes documented in CHANGELOG.md",
+      "release_sha256": "e084f2ead3569b92b4253b2df2611e6d9173749b6dcd2bcbf57b4172706fdc2a",
+      "source_id": "artifact-88352ff79909d523"
+    },
+    {
+      "source_sha256": "873aaf45fcd4ec64da7412614b772ef6018f4404a4b91a819a1859206b46d824",
+      "release": "src/clarity/generation/task_flows/components/nodes/term_aggregator.py",
+      "transformation": "package imports and duplicate declarations; further fixes documented in CHANGELOG.md",
+      "release_sha256": "055f0ccd3a2bf4ee680764b7eee93e1d9ed7e8679b1381c9b186a071fa61751d",
+      "source_id": "artifact-7a13a969eb0b0f25"
+    },
+    {
+      "source_sha256": "858367832a900e4038e346ec738126b6990d4418e6b0e97dbeb1eafb0e2390c7",
+      "release": "src/clarity/generation/task_flows/components/nodes/utterance_aggregator.py",
+      "transformation": "package imports and duplicate declarations; further fixes documented in CHANGELOG.md",
+      "release_sha256": "135b8d9c6c59124bfe985dd9e67efcfe2e20077d1320c9dd067eb6a7c4d6ca90",
+      "source_id": "artifact-227890c48fc9f071"
+    },
+    {
+      "source_sha256": "134bc8b49e6fa14d95a8af7f0a5da658b2472522ac561d50360d5c969d4e1ffd",
+      "release": "src/clarity/generation/task_flows/components/signatures.py",
+      "transformation": "package imports and duplicate declarations; further fixes documented in CHANGELOG.md",
+      "release_sha256": "f54a21634f380c2293dc193ef40e6842bd242be2dd59620327efd63cee592c7a",
+      "source_id": "artifact-5ccba3a366546b4b"
+    },
+    {
+      "source_sha256": "1b66161dc15d2245aa8a127c721646349aa0e1bc009c9c7a30a15ad54b6be288",
+      "release": "src/clarity/generation/task_flows/components/states.py",
+      "transformation": "package imports and duplicate declarations; further fixes documented in CHANGELOG.md",
+      "release_sha256": "119b1165f17fb29ed774fa83cc298a74fcfd8a8f7af76ebb59157ba0ea76d7a6",
+      "source_id": "artifact-3229e4216091b0e4"
+    },
+    {
+      "source_sha256": "b17b59cc7d5a1df6a1e118b805f90533a16c4a7634cdfbab73346a2a7f41bd1b",
+      "release": "src/clarity/generation/task_flows/flows/base.py",
+      "transformation": "package imports and duplicate declarations; further fixes documented in CHANGELOG.md",
+      "release_sha256": "c98a56b00f0463a2a9598be0b0ea409f293183745f7484cd192d8daddb7f9f52",
+      "source_id": "artifact-952580044c81f9ac"
+    },
+    {
+      "source_sha256": "e51e7a428403bfbb14760b1ec3ece2f850c53c0235ddf262d183d3b6349697ca",
+      "release": "src/clarity/generation/task_flows/flows/conv_gen_eval_v1.py",
+      "transformation": "package imports and duplicate declarations; further fixes documented in CHANGELOG.md",
+      "release_sha256": "674ddcd3a5aa2086fac66757f21aa2b1b99ac07def23d533d6a2757245388060",
+      "source_id": "artifact-489cc6d4422ebd82"
+    },
+    {
+      "source_sha256": "262b6ed962d7b7b744c5129061968cfb672ed173552fa15a6e1c68b5a69a7be9",
+      "release": "src/clarity/generation/task_flows/flows/static_flow.py",
+      "transformation": "package imports and duplicate declarations; further fixes documented in CHANGELOG.md",
+      "release_sha256": "4d8bf99cc520f89b2a9003a50b08e87dff13d16e4f8dba6a8c10f5f563cb8be5",
+      "source_id": "artifact-a879d7d78c610430"
+    },
+    {
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release": "src/clarity/core/flows/__init__.py",
+      "transformation": "package imports and duplicate declarations; further fixes documented in CHANGELOG.md",
+      "release_sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "source_id": "artifact-b29f184df035d214"
+    },
+    {
+      "source_sha256": "3fdb759bf4f32e61c2c89d5110e5eda52116ab246fbb09d6d5a9f9ffed3cea94",
+      "release": "src/clarity/core/flows/base.py",
+      "transformation": "package imports and duplicate declarations; further fixes documented in CHANGELOG.md",
+      "release_sha256": "31afb71a9ba919dc04cc01cfe16302f86ec05911c2e953066f20d664789a4633",
+      "source_id": "artifact-31796a45117c020f"
+    },
+    {
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release": "src/clarity/core/flows/components/__init__.py",
+      "transformation": "package imports and duplicate declarations; further fixes documented in CHANGELOG.md",
+      "release_sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "source_id": "artifact-be6bb2d55356fcc6"
+    },
+    {
+      "source_sha256": "323a35bd37d55c9f7500ac4a7b8d2477f6b4b3a45b56f4d72bdd9047d422ced8",
+      "release": "src/clarity/core/flows/components/callbacks.py",
+      "transformation": "package imports and duplicate declarations; further fixes documented in CHANGELOG.md",
+      "release_sha256": "bff8f5bef5b2a7842e875b94e0a5359a4f0c27d5f5cf46ec10162f2a9e142f7c",
+      "source_id": "artifact-e2eaad6c8c828dac"
+    },
+    {
+      "source_sha256": "6f9bfc2f8074a9775fafd9af167cf197f90fb982f302db7c900978e9843826f7",
+      "release": "src/clarity/core/flows/components/data_types.py",
+      "transformation": "package imports and duplicate declarations; further fixes documented in CHANGELOG.md",
+      "release_sha256": "be262c14e28cb4430fbc186690f0a814e182a05bd43ee61e719f7ff6859f27a0",
+      "source_id": "artifact-113b844c4a887fe5"
+    },
+    {
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release": "src/clarity/core/flows/components/nodes/__init__.py",
+      "transformation": "package imports and duplicate declarations; further fixes documented in CHANGELOG.md",
+      "release_sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "source_id": "artifact-319b84892c6aeedc"
+    },
+    {
+      "source_sha256": "bc55ed6a9e892f544713f9c66f9c5a1a62f6dcf3678d8b46ea8df249ed4417fc",
+      "release": "src/clarity/core/flows/components/nodes/base.py",
+      "transformation": "package imports and duplicate declarations; further fixes documented in CHANGELOG.md",
+      "release_sha256": "bb067a80ebb71179f62ba723cdfc1d15b39c8e9f82e55b5a44007df7551bfb49",
+      "source_id": "artifact-4399c816915f5883"
+    },
+    {
+      "source_sha256": "1a184ee8369f4382e26a767c22aebca852211425e62e9328bfeff992cdfd7cbf",
+      "release": "src/clarity/core/flows/components/nodes/simple.py",
+      "transformation": "package imports and duplicate declarations; further fixes documented in CHANGELOG.md",
+      "release_sha256": "3105387875f63b6a1e019f8ddb8a8dbe138209b16f770f14bcae4b9010684dd1",
+      "source_id": "artifact-447533dcf836d8ba"
+    },
+    {
+      "source_sha256": "15f91949f7432d240a4e9bf5b1ce2b99ac2c1e305283e595755d143e3c23f711",
+      "release": "src/clarity/utils/terminal.py",
+      "transformation": "copied",
+      "release_sha256": "814a132029f796ac89e4b9e831fb000332526188eab859b987e655c619b00df6",
+      "source_id": "artifact-462a95672c632c19"
+    },
+    {
+      "source_sha256": "2b3532db932f7ed88318ba430828df918d2c107e54d69c7dcc759b9c688ea5da",
+      "release": "src/clarity/utils/log.py",
+      "transformation": "copied",
+      "release_sha256": "a29c611a92e280ff690d2c50e4e240d915875b5f9a57d4a5e88c4c2bd86de33e",
+      "source_id": "artifact-02d291cc3bde09bd"
+    },
+    {
+      "source_sha256": "eaca0d239cfd1f444e96c5742c32350440c6ef1b0ccd84b99f2ab049dd2e836a",
+      "release": "src/clarity/prompts/generation.yaml",
+      "transformation": "renamed",
+      "release_sha256": "eaca0d239cfd1f444e96c5742c32350440c6ef1b0ccd84b99f2ab049dd2e836a",
+      "source_id": "artifact-148404998a044929"
+    },
+    {
+      "source_sha256": "d1b6ed2ab7dba8e7d2f13129dbc69f8c5c7f1420ea49910bedde1d3f88dd9c9a",
+      "release": "data/spider/annotations.jsonl",
+      "transformation": "byte-identical",
+      "records": 12098,
+      "release_sha256": "d1b6ed2ab7dba8e7d2f13129dbc69f8c5c7f1420ea49910bedde1d3f88dd9c9a",
+      "source_id": "artifact-53658604dd2b75b7"
+    },
+    {
+      "source_sha256": "138c384abd43cc3e8fbbcb00d3472cf3accb9b631a6d26d4a67aab748426f47c",
+      "release": "data/spider/seeds.jsonl",
+      "transformation": "byte-identical",
+      "records": 7000,
+      "release_sha256": "138c384abd43cc3e8fbbcb00d3472cf3accb9b631a6d26d4a67aab748426f47c",
+      "source_id": "artifact-936282a67d751bbe"
+    },
+    {
+      "source_sha256": "9ef6d4b7083978524de0470bad0a46530b55e5d09a93e2be9879b15aaa68f228",
+      "release": "data/spider/schemas.json",
+      "transformation": "filter to selected benchmark database IDs; compact JSON; gzip for values",
+      "database_count": 140,
+      "release_sha256": "f6c32f287a620c9a92d756b97f34f27571e62dcbf232d44e24e48cd289dd40c1",
+      "source_id": "artifact-92d83d2531cb3458"
+    },
+    {
+      "source_sha256": "0008d01f50fbb93da1d432dfcc4ef104297ea7e2924507da8704928ae1913164",
+      "release": "data/spider/columns.json",
+      "transformation": "filter to selected benchmark database IDs; compact JSON; gzip for values",
+      "database_count": 140,
+      "release_sha256": "aedfce81fbc608623a308b671a09679826225dc072c6a25e6c8cc19ad962257a",
+      "source_id": "artifact-804a2e1314cf1ce6"
+    },
+    {
+      "source_sha256": "5339f05077b68da136028e3e05422c592b91288b8fde8db15ae0a9e617e69f51",
+      "release": "data/spider/values.json.gz",
+      "transformation": "filter to selected benchmark database IDs; compact JSON; gzip for values",
+      "database_count": 140,
+      "release_sha256": "4102203ab099d9d7e8eb3dbe7fe6dc95b362830cf9c516e473eb314106e39a2a",
+      "source_id": "artifact-e1ce93524fa01f38"
+    },
+    {
+      "source_sha256": "cc69c8060d80535f360b3f62b4803011b3c514e240590663fc75330e8998bb9a",
+      "release": "data/bird/annotations.jsonl",
+      "transformation": "byte-identical",
+      "records": 7170,
+      "release_sha256": "cc69c8060d80535f360b3f62b4803011b3c514e240590663fc75330e8998bb9a",
+      "source_id": "artifact-61be920564ae6dd5"
+    },
+    {
+      "source_sha256": "3ba4fbbcb5986b8923d9c98bed7ea1a6bc75c4fc95cb94c47cb68776a1c73ea1",
+      "release": "data/bird/seeds.jsonl",
+      "transformation": "byte-identical",
+      "records": 1534,
+      "release_sha256": "3ba4fbbcb5986b8923d9c98bed7ea1a6bc75c4fc95cb94c47cb68776a1c73ea1",
+      "source_id": "artifact-0fbcde73ee13d964"
+    },
+    {
+      "source_sha256": "2c9c41a055f4d333fc11c0f61abe2d9b4a2b558430d3828fea88c7051add5f14",
+      "release": "data/bird/schemas.json",
+      "transformation": "filter to selected benchmark database IDs; compact JSON; gzip for values",
+      "database_count": 11,
+      "release_sha256": "ddf75c0c0a865b0ced0ded9cf8581974e78b844a88b15779f64f799665869d5b",
+      "source_id": "artifact-8d5ce971f1041f0b"
+    },
+    {
+      "source_sha256": "373c35a7830db329b0143f270996e8bd1a5d426b3e7568c13399815c618df86a",
+      "release": "data/bird/columns.json",
+      "transformation": "filter to selected benchmark database IDs; compact JSON; gzip for values",
+      "database_count": 11,
+      "release_sha256": "05a225d9d9210aed675bef135135ba324b93490394ad132152f31959689c2ff6",
+      "source_id": "artifact-61c2e031ca187d4e"
+    },
+    {
+      "source_sha256": "eb35e2dddc9e01f065fdbd92866470d12b66a82adf7eb6702df851e9772fb512",
+      "release": "data/bird/values.json.gz",
+      "transformation": "filter to selected benchmark database IDs; compact JSON; gzip for values",
+      "database_count": 11,
+      "release_sha256": "e87c2607a2ff3c4d6e3e33b29445a1b032c0b31c4442b1e69cbf9e7e64da0355",
+      "source_id": "artifact-63a6a03151afc7c6"
+    }
+  ]
+}

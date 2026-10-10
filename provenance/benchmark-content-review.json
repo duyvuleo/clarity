@@ -1,0 +1,80 @@
+{
+  "catalog": "data/bird/values.json.gz",
+  "catalog_sha256": "e87c2607a2ff3c4d6e3e33b29445a1b032c0b31c4442b1e69cbf9e7e64da0355",
+  "upstream_archive_url": "https://bird-bench.oss-cn-beijing.aliyuncs.com/dev.zip",
+  "upstream_archive_sha256": "cdd6d19faeb45a23970b98d3ef6c40a87987c95459c2cf12076897a60cf5a630",
+  "flagged_unique_values": 199,
+  "all_matched_strings_verified_in_official_db": true,
+  "unverified_values": 0,
+  "fields": [
+    {
+      "database": "california_schools",
+      "table": "schools",
+      "column": "Website",
+      "flagged_unique_values": 3,
+      "verified_exactly_in_official_database": 3,
+      "unverified_values": 0
+    },
+    {
+      "database": "codebase_community",
+      "table": "comments",
+      "column": "Text",
+      "flagged_unique_values": 16,
+      "verified_exactly_in_official_database": 16,
+      "unverified_values": 0
+    },
+    {
+      "database": "codebase_community",
+      "table": "postHistory",
+      "column": "Text",
+      "flagged_unique_values": 112,
+      "verified_exactly_in_official_database": 112,
+      "unverified_values": 0
+    },
+    {
+      "database": "codebase_community",
+      "table": "posts",
+      "column": "Body",
+      "flagged_unique_values": 64,
+      "verified_exactly_in_official_database": 64,
+      "unverified_values": 0
+    },
+    {
+      "database": "codebase_community",
+      "table": "users",
+      "column": "WebsiteUrl",
+      "flagged_unique_values": 1,
+      "verified_exactly_in_official_database": 1,
+      "unverified_values": 0
+    },
+    {
+      "database": "codebase_community",
+      "table": "users",
+      "column": "Location",
+      "flagged_unique_values": 1,
+      "verified_exactly_in_official_database": 1,
+      "unverified_values": 0
+    },
+    {
+      "database": "codebase_community",
+      "table": "users",
+      "column": "AboutMe",
+      "flagged_unique_values": 2,
+      "verified_exactly_in_official_database": 2,
+      "unverified_values": 0
+    }
+  ],
+  "scope": "Local-looking paths in benchmark values only; infrastructure and token rules remain enforced.",
+  "source_databases_verified": [
+    {
+      "db_id": "california_schools",
+      "sha256": "986817d793479801ed55133e55aa27e335422c0cd3866b54a3d6317b7c5f09c1",
+      "matches_download_manifest": true
+    },
+    {
+      "db_id": "codebase_community",
+      "sha256": "92101be6d2a9f6adceea59d38f6d1c556087f9eea1432432a21268cb1348036d",
+      "matches_download_manifest": true
+    }
+  ]
+}

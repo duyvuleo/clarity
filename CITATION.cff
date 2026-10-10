@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "Please cite CLARITY and the relevant upstream benchmark when using this release."
+title: "CLARITY: A Framework and Benchmark for Conversational Language Ambiguity and Unanswerability in Interactive NL2SQL Systems"
+type: software
+version: 0.1.0
+date-released: 2026-10-09
+url: https://arxiv.org/abs/2604.22313
+license: MIT
+authors:
+  - {family-names: Sarwar, given-names: Tabinda}
+  - {family-names: Moghimifar, given-names: Farhad}
+  - {family-names: Hoang, given-names: Cong Duy Vu}
+  - {family-names: Ma, given-names: Xiaoxiao}
+  - {family-names: Xu, given-names: Shawn Chang}
+  - {family-names: Saleh, given-names: Fahimeh}
+  - {family-names: Zaremoodi, given-names: Poorya}
+  - {family-names: Sil, given-names: Avirup}
+  - {family-names: Kirchhoff, given-names: Katrin}

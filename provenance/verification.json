@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-09",
+  "python": "3.12.10",
+  "source_tests": {
+    "tests": 28,
+    "failures": 0,
+    "errors": 0
+  },
+  "fresh_wheel_tests": {
+    "tests": 28,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 12.521
+  },
+  "wheel_test_working_directory": "outside source tree",
+  "network_disabled_during_tests": true,
+  "live_model_generation_verified": false,
+  "sqlite_execution_accuracy_verified": false,
+  "published_results_reproduced": false,
+  "original_source_artifacts_unchanged": 49,
+  "known_test_warnings": 113,
+  "build": [
+    "wheel",
+    "source distribution"
+  ]
+}

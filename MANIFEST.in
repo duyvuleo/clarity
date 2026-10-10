@@ -1,0 +1,6 @@
+include README.md LICENSE NOTICE.md DATA_LICENSE.md DATA_CARD.md CHANGELOG.md VERIFICATION.md CITATION.cff requirements-lock.txt
+recursive-include configs *.json
+recursive-include provenance *.json *.xml
+recursive-include scripts *.py
+recursive-include tests *.py
+recursive-include src/clarity/prompts *.yaml

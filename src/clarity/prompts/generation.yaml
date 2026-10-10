@@ -1,0 +1,2605 @@
+prompts:
+  lexical_term_prompt: |
+     You are a SQL expert specializing in natural language (NL)-to-SQL translation and data generation.
+     You are given a column of interest and list of similar columns. Your task is to analyze the list of similar columns and identify a subset of columns that similar to the given column of interest, which might cause ambiguity if referenced without enough detail in a query. Ambiguity arises when multiple columns have similar names or overlapping meanings, making it unclear which one should be used.  
+     
+     ### **Instructions**
+     The following instructions must be strictly followed:
+     1. **Group Selection**: Identify groups of columns that are lexically similar to the given column of interest  
+        - Identify the columns that have similar names and writing style or structure to the column of interest and group them. 
+        - The column of interest and selected columns must share common tokens, words or segments.
+          - If there are many column names which are similar to the column of interest, then select the ones that share most tokens, words or segments.
+        - The group should contain one or more columns from the given list.
+     2. **Term Generation**: Generate an ambiguous term for the column of interest that can likely be asked by a human database manager and cause ambiguity with the selected columns group using the following rules:
+        - The ambiguous term should be lexically similar to column of interest in terms of wording, length, and style.
+        - The ambiguous term should NOT be an exact match with column of interest and any column from the selected column list i.e., the term should be slightly different to all the columns in the list and should not exactly match with any of the columns.
+        - The ambiguous term should NOT contain token, word, or segment from column(s) of the selected group which does not appear in the column of interest e.g., for "employee name" column of interest, "manager employee" is an invalid as token 'manager' token exists in selected column groups, ["Manager Employee Name", "Manager Employee ID", "Manager Employee Contact"] but not in the column of interest.
+        - The ambiguous term should NOT contain keyword or token that could be linked with a unique column e.g., for column of interest "Customer Number" and selected columns ["Customer Returning ID", "Customer Name"], "customer identifier' is an invalid ambiguous term as it can be associated with "customer Returning ID" instead of the column of interest. Moreover, it is also not associated with the column of interest.
+        - The ambiguous term should NOT be a synonym or paraphrased word e.g., if we have two columns "Employee Title" and "Employee Designation" then "worker" term is invalid as it is a synonym of "Employee".
+        - Do not use vague generic terms. For example, "count" for 'Number of People', 'Number of Cities' or 'Number of Countries' columns is an invalid ambiguous term.     
+        - Ignore the case (uppercase or lowercase), singular plural and minor variations when generating an ambiguous term for the selected group. For example:
+          -'Customer Count', 'customer count', 'CUSTOMER COUNT', 'customer_count' and 'customer counts' represent the same column. 
+          - 'no.', 'number' or '#' represent the same word or token. 
+          - 'Customer Count' and 'Count Customer' represent the same column. 
+        - If an ambiguous term cannot be generated when multiple lexically similar columns do not exist, then use 'Null' for ambiguous term.
+     3. **Constraints**:
+        - The ambiguous term and selected group must be specific to the column of interest, i.e., the ambiguous term is generated for the column of interest which causes ambiguity with the selected columns group.
+          - For the ambiguous term, DO NOT use tokens, words or segments from columns of the selected group that do not appear in the column of interest.
+          - The token, words or segments in ambiguous term must appear in both column of interest and the columns of the selected group.
+        - Take into consideration the history, if provided, when generating the response. 
+            - The history contain errors linked with the term generated in the previous attempt(s).
+            - Strictly use the history to generate a valid ambiguous term.
+        - Strictly generate the response considering the column of interest, similar columns list and given constraints. Do not introduce any assumptions or external knowledge beyond the given columns. 
+        - Refrain from providing elaborative reasoning and only provide a short summarised reason, following the provided examples and output template. 
+     4. **Format**: Strictly generate the response using the given output format. DO NOT generate any other content or text.
+    
+     ### **Examples**
+        
+     Example 1:
+     Column of Interest: "Monthly Orders"
+     Given List of Similar Columns: ["Total Orders", "Yearly Orders", "Order Dispatch Date" , "Order Invoice ID"]
+     History: None
+     Selected Group: ["Total Orders", "Yearly Orders"]
+     Ambiguous Term: "orders"
+     Reason: "The column of interest 'Monthly Orders' share common token 'orders' with all the columns in the selected list and 'orders' itself is not a column name in the given list."   
+
+     Example 2:
+     Column of Interest: "Customer_ID"
+     Given List of Similar Columns: ["Employee_ID", "Employee_Name", "Department_ID", "Department_Name", "Organisation_ID"]
+     History: None
+     Selected Group: ["Employee_ID", "Department_ID", "Organisation_ID"]
+     Ambiguous Term: "ID"
+     Reason: "The column of interest 'Customer_ID' has 'ID' which also appears in the three selected columns and 'ID' itself is not a column name in the given list."   
+
+     Example 3:
+     Column of Interest: "Order Generated Transfer Number"
+     Given List of Similar Columns: ["Order Generated Bar Number", "Parcel Generated Bar Number", "Order Generated Dispatch Number"]
+     History:  None
+     Selected Group: ["Order Generated Bar Number", "Order Generated Dispatch Number"]
+     Ambiguous Term: "order generated number"
+     Reason: "'Order Generated' and 'number' in the column of interest are common across the three selected columns. So 'order generated number' ambiguous term could be used as this is an exact column in the list"
+
+     Example 4:
+     Column of Interest: "Cost"
+     Given List of Similar Columns: ["Annual Cost", "Order Date", "Order Cost", "Annual Profit", "Cost per Item"]
+     History: "'cost' itself is a column name in the given list. So this is not a valid ambiguous term"
+     Selected Group: ["Annual Cost", "Order Cost"]
+     Ambiguous Term: "cost info"
+     Reason: "cost info is ambiguous enough to cover column of interest and all the columns in the selected group list, avoiding exact match with any one of them"
+
+     Example 5:
+     Column of Interest: "Invoice Allocated Serial Number"
+     Given List of Similar Columns: ["Inventory Allocated Batch Number", "Order Dispatch Batch Number", "Inventory Allocated Serial Number", "Invoice Allocated Batch Number"]
+     History: None
+     Selected Group: ["Inventory Allocated Batch Number", "Invoice Allocated Batch Number"]
+     Ambiguous Term: "allocated batch number"
+     Reason: "'allocated number' generalises to column of interest and selected columns, causing ambiguity in the selection of exact column name"
+
+     Example 6:
+     Column of Interest: "Manager_First_Name"
+     Given List of Similar Columns: ["Manager_Contact", "Manager_Email", "Manager_Designation", "Department"]
+     History: None
+     Selected Group: ["Manager_Contact", "Manager_Email", "Manager_Designation"]
+     Ambiguous Term: "Name"
+     Reason: "The column of interest 'Manager_First_Name' contains 'Manager' which also appears in the three selected columns and 'Manager' itself is not a column name in the given list."  
+
+     Example 7:
+     Column of Interest: "Number of AC DC services"
+     Given List of Similar Columns: ["Number of AC services", "AC services requested", "Price per AC service", "Number of paid services", "Number of unpaid services"]
+     History: "'no. of AC services' is an invalid ambiguous term as it represents the actual column "Number of AC services" in the given list"
+     Selected Group: ["Number of AC services", AC services requested", "Price per AC service"]
+     Ambiguous Term: "AC services"
+     Reason: "'AC services' term can cause ambiguity for the column of interest, making it unclear which column is being referred to and generalise to all the columns in the given list"
+
+     Example 8: 
+     Column of Interest: "Department"
+     Given List of Similar Columns: ["Department", "Section", "Category"]
+     History: None
+     Selected Group: []
+     Ambiguous Term: 'Null'
+     Reason: "There is no column lexically similar to Department, hence an ambiguous term cannot be created"
+
+     Example 9:
+     Column of Interest: "managerName"
+     Given List of Similar Columns: ["employeeName", "departmentName", "contactNo", "head"]
+     History: None
+     Selected Group: ["employeeName", "departmentName"]
+     Ambiguous Term: "Name"
+     Reason: "The column of interest 'managerName' contains 'Name' which also appears in the two selected columns and 'Name' itself is not a column name in the given list."  
+
+     Example 10:
+     Column of Interest: "transaction_number"
+     Given List of Similar Columns: ["transaction_id", "customer_id", "customer_contact", "credit_card_transaction", "amount_transaction"]
+     History: None
+     Selected Group: ["transaction_id", "credit_card_transaction", "amount_transaction"]
+     Ambiguous Term: "transaction"
+     Reason: "The column of interest 'transaction_number' contains 'transaction' which also appears in the three selected columns and 'transaction' itself is not a column name in the given list."  
+
+
+     ### **Inputs**
+     
+     Column of Interest:
+     {coi}
+
+     List of Similar Columns:
+     {subset_columns}
+
+     History:
+     {history_term}
+
+     ### **Outputs**
+    
+     **Your response must follow these instructions**:
+     {format_instructions}
+
+  semantic_term_prompt: |
+      You are a SQL expert specializing in natural language (NL)-to-SQL semantics and schema analysis.
+
+      You are given a column of interest and a list of other columns from a database.
+      You must:
+      1. Analyze the Given List of Columns and identify a subset of columns that are semantically similar to the `Column of Interest`.
+      2. Combine `Column of Interest` with the identified subset of columns.
+      3. Generate an ambiguous term that is semantically similar to every column name in the combined list, and can represent each of the column names in this list.
+
+      # **Instructions**
+      You must strictly follow these rules to complete the task:
+
+      1.  **Group Selection**: From the `Given List of Columns`, identify a group of one or more columns that are semantically similar to the `Column of Interest`.
+          * A group of terms are semantically similar **ONLY IF**:
+            - two or more columns share meaning based on their underlying concepts, such that they refer to related or overlapping ideas in a knowledge space, even if they are not identical in wording.
+          * Infer each column's underlying concept from the values it would potentially contain (data type), and group columns only when those inferred concepts—and their value domains—clearly align.
+          * Do not group columns just because they share a word if they represent different entities (e.g., 'Customer Name' and 'Department Name' are both names but for different things and should not be grouped).
+          * This subset forms `Selected Group` of columns that are all semantically similar.
+          * If there's no semantically similar column in the list return `[]` as `Selected Group`.
+
+      2. **Generate a Combined List**: Combine the `Selected Group` and `Column of Interest` to form a new list of columns.
+          * DO NOT add any extra columns to the `Selected Group` and `Column of Interest`.
+          * `Combined List` must contain two or more columns for ambiguous term generation.
+
+      3.  **Ambiguous Term Generation**: Use `Combined List` to generate an **Ambiguous Term**.
+          * **Ambiguous Term**: Generate an ambiguous term that represents higher-level category, concept, or synonym for the `Combined List`(e.g., "expenses" is a good generalization for 'order_cost', 'annual_cost', 'registration_fee').
+            - The term must be applicable to all the columns in the combined list.
+            - The generated term should represent specific category or concept linked to the combined list.
+            - The generated term should be singular; for example, use the term 'detail' instead of 'details'.
+          * **Avoid Specific Tokens**: Do not use unique or defining words from the column names in your term. For example, 'code' term is a specific token from column 'postal code', so it is incorrect.
+          * **No Exact Matches**: The term must not be an exact match for any column name.
+          * **Handle Null Cases**: If `Combined List` is an empty list `[]` or contains only one column, then `Ambiguous Term` must be `"Null"`.
+          * **Use Context**: Leverage the `Reference Natural Language Query` and `History` to understand the context and avoid past errors.
+          * **Constraints**:
+              - Use clear, everyday language that a non-technical stakeholder would understand; avoid jargon and umbrella terms, and prefer specific, familiar words.
+              - Do not overgeneralize the ambiguous term used for columns in the `Combined List`. Instead, create a more specific ambiguous term that is relevant to the `Combined List`.
+                - For example, "Financial Metrics" is not a correct term for columns "discount_code", "payment_method", and "currency_type" as these columns are related to transactions, they do not represent actual financial metrics. A specific ambiguous term for this case could be "Transaction Metadata".
+              - If a specific ambiguous term cannot be generated for `Combined List` then return `"Null"`.
+              - Ignore the case (uppercase or lowercase), singular plural and minor variations when generating an ambiguous term for the selected group. For example:
+                  - 'no.', 'number' or '#' represent the same word or token. 
+                  - 'Identifier', 'ID', or 'identity' represent the same word or token.
+
+      4.  **Reasoning**: Provide a concise reason explaining every step that was taken to generate the `Ambiguous Term` and why the `Ambiguous Term` is a good generalization for the `Column of Interest` and the `Selected Group`.
+
+      ### **Examples**
+      *The following examples demonstrate the desired input-to-output behavior.*
+
+
+      **Example 1: Grouping by High-Level Concept**
+      `Column of Interest`: "Software Bug"
+      `Given List of Columns`: ["Security Breach", "Hardware Cost", "Malfunctions in Hardware", "External Device #", "Hardware Failure", "Requested Services"]
+      `History`: None
+      `Reference Natural Language Query`: "What is the count of the software bugs faced by the IT department?"
+      ---
+      `Selected Group`: ["Security Breach", "Malfunctions in Hardware", "Hardware Failure"]
+      `Ambiguous Term`: "issue"
+      `Reason`: "'issue' is a high-level category that covers various problems, whether they are software defects, security incidents, or hardware failures."
+
+      **Example 2: Correcting Based on History (Shared Token)**
+      `Column of Interest`: "Completion Date"
+      `Given List of Columns`: ["Registration Date", "Order ID", "Contact Email", "Purchase Date", "Customer Name"]
+      `History`: "The previous term 'date' was invalid because it is a direct token found within the column names 'Registration Date' and 'Purchase Date'."
+      `Reference Natural Language Query`: "Return the completion date for order # 10962"
+      ---
+      `Selected Group`: ["Registration Date", "Purchase Date"]
+      `Ambiguous Term`: "timeframe"
+      `Reason`: "'timeframe' is a suitable generalization for columns that specify different points in time, such as when something was completed, purchased, or registered."
+
+      **Example 3: Correcting Based on History (Exact Match)**
+      `Column of Interest`: "cost"
+      `Given List of Columns`: ["annual_cost", "buyer_id", "seller_organisation", "order_cost", "buyer_contact_number", "seller_contact_number", "registration_fee", "seller_commission_fee"]
+      `History`: "The previous term 'cost' was invalid because it is an exact match with the column of interest."
+      `Reference Natural Language Query`: "What is the cost associated with orders placed by each buyer?"
+      ---
+      `Selected Group`: ["annual_cost", "order_cost", "registration_fee", "seller_commission_fee"]
+      `Ambiguous Term`: "expense"
+      `Reason`: "'expense' serves as a general synonym that encompasses different types of financial outlays like annual costs, order costs, and fees."
+
+      **Example 4: Using a Synonym for a Category**
+      `Column of Interest`: "violation_fine"
+      `Given List of Columns`: ["sales_tax", "transaction_id", "due_date", "late_fee", "created_at", "status", "description", "non_compliance_penalty"]
+      `History`: None
+      `Reference Natural Language Query`: "Display the due date of the violation fine created in January 2021."
+      ---
+      `Selected Group`: ["sales_tax", "late_fee", "non_compliance_penalty"]
+      `Ambiguous Term`: "levy"
+      `Reason`: "'levy' is a generalized term for a financial charge imposed by an authority, which accurately covers fines, taxes, and fees."
+
+      **Example 5: Generalizing Metrics into a Concept**
+      `Column of Interest`: "completedProjects"
+      `Given List of Columns`: ["salesHead", "salesAchieved", "projectsCompleted", "salesCost", "employeeID", "scoreReceived", "deptName", "manager"]
+      `History`: None
+      `Reference Natural Language Query`: "How many projects are completed by the employee with id 78901?"
+      ---
+      `Selected Group`: ["salesAchieved", "projectsCompleted", "scoreReceived"]
+      `Ambiguous Term`: "performance"
+      `Reason`: "'performance' is a high-level metric that generalizes various measures of achievement, such as completed projects, sales targets, and scores."
+
+      **Example 6: Handling the Null Case**
+      `Column of Interest`: "transactionNo"
+      `Given List of Columns`: ["customerID", "customerContact", "branchName", "recipientID"]
+      `History`: None
+      `Reference Natural Language Query`: "What are the transaction numbers linked with recipient 1445?"
+      ---
+      `Selected Group`: []
+      `Ambiguous Term`: "Null"
+      `Reason`: "No columns in the given list are semantically similar to 'transactionNo', so no group can be formed and no ambiguous term can be generated."
+
+      ### **Inputs**
+      `Column of Interest`:
+      {coi}
+
+      `Given List of Columns`:
+      {subset_columns}
+
+      `History`:
+      {history_term}
+
+      `Reference Natural Language Query`:
+      {question}
+
+      ### **Output**
+      *Strictly generate the response using the format below. Do not generate any other content, text, or explanations.*
+      {format_instructions}
+  
+  confusion_term_prompt: |
+     You are a SQL expert specializing in natural language (NL)-to-SQL translation and data generation.
+     Your task is to generate a **confusing** term from a list of database columns and a column of interest.
+     You must convert the column of interest into a confusing term.
+     A term is confusing if it satisfies the following conditions:
+     1. The term is in the same domain of the database columns.
+     2. The term is lexically amd semantically different from all of the columns in the database.
+     3. The term cannot be directly translated to any of the columns from the database. 
+     
+     ### **Instructions**
+     The following instructions must be strictly followed:
+     1. **Database Columns Analysis**: Analyze the list of the given columns and identify the domain of the database.
+     2. **Term Generation**: Generate a confusing term from the column of interest that cannot be directly translated or mapped to any of the columns.
+        - The confusing term MUST NOT be lexically or semantically similar to any of the columns in the database.
+        - The confusing term MUST NOT be translated or mapped to any of the columns in the database.
+        - The confusing term MUST be from the same domain of the given list of columns.
+        - Do not use vague generic terms.
+        - Ignore the case (uppercase or lowercase), singular plural and minor variations when generating an ambiguous term for the selected group. For example:
+        - If a confusing term cannot be generated use 'Null' for confusing term.
+     3. **Constraints**:
+        - Take into consideration the history, if provided, when generating the response. 
+            - The history contain errors linked with the term generated in the previous attempt(s).
+            - Strictly use the history to generate a valid confusing term.
+     4. **Format**: Strictly generate the response using the given output format. DO NOT generate any other content or text.
+    
+     ### **Inputs**
+     
+     Column of Interest:
+     {coi}
+
+     List of Database Columns:
+     {dataset_columns}
+
+     History:
+     {history_term}
+
+     ### **Outputs**
+    
+     **Your response must follow these instructions**:
+     {format_instructions}
+
+  confusion_value_prompt: |
+     You are a SQL expert specializing in natural language (NL)-to-SQL translation and data generation.
+     Your task is to generate a **confusing** value for a selected values, whose list of values are provided.
+     A value is confusing if it satisfies the following two conditions:
+     1. The value is in the same domain the given list of values.
+     2. The value is not an exact match to any of the values in the given list.
+     
+     ### **Instructions**
+     The following instructions must be strictly followed:
+     1. **Column Values Analysis**: Analyze the list of the given values and identify the domain values of the column. For example:
+         - Textual values such as "Full Name", "Emails", "Company Name", "Course Name", "Full Address"
+         - Numerical values such as Age, Temperature, Date, Phone # or Room #
+         - Categorical values such as Gender, Status, Job Designation, Country        
+     2. **Value Generation**: Generate a confusing value for given the column of interest that does not matches any of the values in the given column. 
+        - The generated value MUST correspond to the domain type. For example:
+            - For textual data, either a new textual value is generated that is not present in the given list, or a misspelled or singular/plural variant of one of the values in the list is produced.
+            - For numerical value, generate a value that is not present in the given list but falls within the constraints of the identified domain e.g., a body temperature value.
+            - For categorical value, generate a categorical value within the constraints of the identified domain which does not exist in the given list. For example, for country "USA", the confusion value could be "United States of America".
+     3. **Constraints**:
+        - Take into consideration the history, if provided, when generating the response. 
+            - The history contain errors linked with the values generated in the previous attempt(s).
+            - Strictly use the history to generate a valid confusing value.
+     4. **Format**: Strictly generate the response using the given output format. DO NOT generate any other content or text.
+    
+     ### **Inputs**
+     
+     Column of Interest:
+     {coi}
+
+     List of Values Linked with Column of Interest:
+     {coi_value}
+
+     History:
+     {history_term}
+
+     ### **Outputs**
+    
+     **Your response must follow these instructions**:
+     {format_instructions}
+
+  lexical_term_ambiguity_eval_prompt: |
+   You are a database analyst specializing in extracting relevant columns from a database. You are given a term and a list of columns. Your task is to analyze the list of columns and the given term to determine whether the term is lexically similar to the columns and represents an ambiguous term, without being an exact match or a direct representation of any of them.
+    
+   ### **Definition**
+
+   **Ambiguity**: Ambiguity arises between a term and list of columns if it is not clear which column name is being referred by the term in the given list. A valid ambiguous term can be linked with more than one column in the given list.
+    * The following conditions must be met for a valid ambiguous term:
+        * The ambiguous term should be lexically similar to two or more columns in the list in terms of wording, length, and style.
+            * Lexical similarity involves sharing same tokens, words or segments.
+            * If a term can be linked to two or more columns of the given list then it qualifies for valid ambiguity.
+        * The entire ambiguous term should be linked with two or more columns. If the entire term cannot be linked with the given columns, then it is invalid. For example:
+            * 'primary contact', the entire term, can be linked to "primary contact name" and "primary contact address" raising ambiguity in column selection. 
+            * 'secondary email' cannot be linked to "contact email" and "secondary address" as the entire term cannot be associated with the mentioned two columns. Such cases do not qualify for valid ambiguity.
+        * The ambiguous term must not exactly match the name of any column in the provided list.
+            * An exact match is only allowed if it refers to a single, specific column in the list. This represents invalid ambiguity.
+            * If the term can be linked with more than one columns, then it holds valid ambiguity.
+        * The ambiguous term should not be a generic synonym or paraphrased word e.g., if the list contains columns "Employee Title" and "Employee Designation" then "person" term is invalid as it is a synonym of "Employee" and there is no column that could be lexically linked with "person" term.
+    * **Constraints**
+        * Ignore the case (uppercase or lowercase), singular plural and minor variations during the comparison and analysis For example:
+            *'Customer Count', 'customer count', 'CUSTOMER COUNT', 'customer_count' and 'customer counts' represent the same column. 
+            * 'no.', 'number' or '#' represent the same word or token. 
+            * 'Customer Count' and 'Count Customer' represent the same column. 
+    * **Examples fo Valid Ambiguity:** 
+         * "student" is a valid ambiguous term for ["Student ID", "Program Start Date", "Course ID" , "Program End Date", "Student First Name", "Student Last Name" ] as it can be linked to multiple columns "Student ID", "Student First Name", and "Student Last Name" columns, causing ambiguity in column selection.
+         * "Sales - Contact Number" is a valid ambiguous term for ["Sales - Customer Home Number", "Sales - Customer Office Number", "Sales - Customer ID", "Purchases - Employee ID"] as it causes ambiguity in selecting column either "Sales - Customer Home Number" or "Sales - Customer Office Number".
+         * "employee" is a valid ambiguous term for ["name_employee", "ID_employee", "contact_employee"] as "employee" segment is applicable to all the columns in the list and does not have an exact match with any of the columns.
+         * "dept" is a valid ambiguous term for ["DeptID", "HeadID", "DeptName","HeadName", "HeadEmail", "DepartEmail"] as it can be maped to columns "DeptID", "DeptName", and "DepartEmail", not clarifying which one is being referred to.
+         * "cost info" is a valid ambiguous term for ["Cost", "Annual Cost", "Monthly Cost"] as it can be associated with all the columns, as 'info' could be linked with any of the columns.
+         * "student_name" is a valid ambiguous term for ["student_id", "student_first_name", "student_last_name", "course_enrolled", "program_enrolled"] as the entire term can be linked to "student_first_name" and "student_last_name" columns.
+         * "given name" is a valid ambiguous term for ["customer id", "customer given name", "customer last name", "employee id", "employee given name", "employee last name" ,"employee contact"] as the term can be linked with "employee given name" and "customer given name" columns.
+    * **Examples of Invalid Ambiguity:**      
+         * "purchase date" is an invalid ambiguous term for ["Purchase Date", "Purchase Date Approved", "Purchase Date Initiated"] as it has an exact match with "Purchase Date" in the given list.
+         * "manager employee" is an invalid ambiguous term for ["Manager Employee Name", "Manager Employee StartDate", "Employee Manager", "Manager Employee Contact"] as it can be mapped to "Employee Manager" column.
+         * "finance dept" is an invalid ambiguous term for ["Finance Department", "Corporate Finance Department", "Finance Planning Department", "HR Department"] as "finance dept" is another variant of "Finance Department" in the list and does not represent ambiguity.
+         * "code" is an invalid ambiguous term for ["zipcode", "street number", "unit", "state" ] as "code" can directly map to "zipcode". To qualify for ambiguity criterion, the term must be lexically similar to at least two columns.
+         * "employee salaries" is an invalid ambiguous term for ["Employee ID", "Employee Name", "Employee Salary", "Employee Salary Level", "Employee Designation"] as it represents a variant of "Employee Salary" column. Therefore, it does not qualify for ambiguity criterion.
+         * "customer_number" is an invalid ambiguous term for ["customer_id", "customer_registration", "customer_contact", "employee_contact", "employee_number"] as the entire term cannot be linked with any of the columns in the list . Therefore, it does not qualify for ambiguity criterion.
+   
+    ### **Instructions**
+
+    1.  **Analyze**: 
+         * Compare the `Given Term` with each column of the `Given Column List` using the given `Ambiguity` definition.
+         * Focus on the conditions of the ambiguity criterion to identify valid ambiguous term.
+    2.  **Decide**: Outcome is `"valid"` if the term is ambiguous. Otherwise, its `"invalid"`.
+    3.  **Explain**: Provide a brief reason for your decision.
+    4.  **Constraints**:
+         * Base your reason strictly on the provided definitions.
+         * The reason should be specific to the given term and list of columns.
+         * Do not use any external knowledge or make assumptions.
+    5.  **Format**: Structure your entire response according to the `Output Format` instructions
+
+    
+    ### **Inputs**
+
+    Given Term:
+    {term}
+    
+    Given List of Columns:
+    {dataset_columns}
+
+    ### **Outputs**
+    
+    **Your response must follow these instructions**:
+    {format_instructions}
+
+  semantic_term_ambiguity_eval_prompt: |
+   You are a database analyst specializing in extracting relevant columns from a database. You are given a term and a list of columns. Your task is to analyze the list of columns and the given term to determine whether the term is semantically similar to the columns and represents an ambiguous term, without being an exact match or a direct representation of any of them.
+    
+   ### **Definition**
+
+   **Ambiguity**: Ambiguity arises between a term and list of columns if it is not clear which column name is being referred by the term in the given list. A valid ambiguous term can be linked with more than one column in the given list.
+    * The following conditions must be met for a valid ambiguous term:
+        * The ambiguous term should be semantically similar to two or more columns in the list i.e., a term and column share meaning based on their underlying concepts, such that they refer to related or overlapping ideas in a knowledge space, even if they are not identical in wording. Infer each column's underlying concept from column names and values it would potentially contain (data type).
+            * If a term can be linked to two or more columns of the given list then it qualifies for valid ambiguity.
+            * Ambiguous term must represent a high-level concept or category e.g., "person" can represent "Employee" and "Manager" columns.
+            * If the ambiguous term is lexically similar to columns in the given list, not semantically similar, then it is invalid
+        * The entire ambiguous term should be linked with two or more columns. If the entire term cannot be linked with the given columns, then it is invalid. For example:
+            * 'personal information', the entire term, can be linked to "primary contact name" and "primary contact address" raising ambiguity in column selection. 
+        * The ambiguous term must not exactly match or map to a single column in the provided list.
+            * The identified ambiguous term should not contain keyword that could be linked any column e.g., if 'ZipCode', 'Address' and 'PO Box' are columns in the given list then 'code' is an invalid ambiguous term as 'code' keyword exist in 'ZipCode'.
+        * The ambiguous term should not be a generic term e.g., 'data' or 'information' are invalid terms as majority of the columns can be linked with these generic terms.
+    * **Constraints**
+        * Ignore the case (uppercase or lowercase), singular plural and minor variations during the comparison and analysis For example:
+            * 'no.', 'number' or '#' represent the same word or token. 
+            * 'Customer Count' and 'Count Customer' represent the same column.
+            * 'Identifier', 'ID', 'identity' or 'key' represent the same word or token.
+            * 'details', 'description', 'descriptor' or descriptive represent the same word or token. 
+
+    ### **Instructions**
+
+    1.  **Analyze**: 
+         * Compare the `Given Term` with each column of the `Given Column List` using the given `Ambiguity` definition.
+         * Focus on the conditions of the ambiguity criterion to identify valid ambiguous term.
+    2.  **Decide**: Outcome is `"valid"` if the term is ambiguous. Otherwise, its `"invalid"`.
+    3.  **Explain**: Provide a brief reason for your decision.
+    4.  **Constraints**:
+         * Base your reason strictly on the provided definitions.
+         * The reason should be specific to the given term and list of columns.
+         * Do not use any external knowledge or make assumptions.
+    5.  **Format**: Structure your entire response according to the `Output Format` instructions
+
+    ### **Examples**
+    
+    Example 1: 
+    Ambiguous Term: 'purchases' 
+    Given List of Columns:['Monthly Orders', 'Vendor ID', 'Product Name', 'Yearly Orders', 'Employee Contact', 'Total Orders']
+    Outcome: 'valid'
+    Reason: 'The ambiguous term "purchases" represent a high-level concept or category for columns 'Yearly Orders', 'Total Orders' and 'Monthly Orders' in the given list. "purchases" is also not a column in the list, satisfying the given constraints of valid outcome.'
+
+    Example 2: 
+    Ambiguous Term: 'employee'
+    Given List of Columns: ['Company Name', 'Department ID', 'Employee ID', 'Employee Name', 'Manager', 'Fax #']
+    Outcome: 'invalid'
+    Reason: 'The ambiguous term "employee"  is lexically similar to columns "Employee ID" and "Employee Name" and does not represent a high-level concept or category. Hence, this "employee" term is invalid'  
+
+    Example 3: 
+    Ambiguous Term: 'benefit' 
+    Given List of Columns: ['Company Name', 'Department ID', 'Superannuation', 'Employee ID', 'Employee Name', 'Manager', 'Fax #', 'Salary', 'Bonus']
+    Outcome: 'valid'
+    Reason: 'The ambiguous term "benefit" can be linked with "Superannuation", "Salary", and "Bonus", representing a high-level category. "benefit" itself is not a column name in the given list. So it is a valid ambiguous term'
+
+    Example 4: 
+    Ambiguous Term: 'profile' 
+    Given List of Columns: ["Student ID", "Program Start Date", "Course ID", "Program End Date", "Student First Name", "Student Last Name"]
+    Outcome: 'invalid'
+    Reason: 'The ambiguous term "profile" does not represent a high-level concept or category. The term is too general and could fit to columns linked with both course and student, which makes it invalid.'
+
+    Example 5: 
+    Ambiguous Term: 'performance' 
+    Given List of Columns: ['student_ID', 'student_name', 'course_ID', 'course_grade', 'attendance', 'completed_assignments', 'program_ID', 'course_marks']
+    Outcome: 'valid'
+    Reason: 'The term "performance" represents a high-level category that can be linked with "course_grade", "completed_assignments", "course_marks". '"performance" itself is not a column name in the given list. So it is a valid ambiguous term.'
+
+    Example 6: 
+    Ambiguous Term: 'product details'
+    Given List of Columns: ['productID', 'productName', 'productDescription', 'category', 'manufacturerID', 'salesTax', 'productionCost']
+    Outcome: 'invalid'
+    Reason: '"product details" is an invalid ambiguous term as it can be mapped to "productDescription" column in the given list'
+
+    Example 7: 
+    Ambiguous Term: 'contact'
+    Given List of Columns: ["DeptID", "HeadID", "DeptName", "HeadName", "DepartEmail", "EnrolledStudents", "FacultyCount"]
+    Outcome: 'invalid'
+    Reason: '"contact" is an invalid ambiguous term as it can be mapped to "DepartEmail" column in the given list and there is no other column that could be linked with "contact" term'
+
+    Example 8: 
+    Ambiguous Term: 'inventory identity'
+    Given List of Columns: ["inventory_code", "inventory_location", "product_profiles", "seller_id", "seller_name", "inventory_name"]
+    Outcome: 'invalid'
+    Reason: '"inventory identity" is an invalid ambiguous term as it can be mapped to "inventory_numbe" column in the given list, as "identity" can be considered similar to "code" in here'
+
+   
+    ### **Inputs**
+
+    Ambiguous Term:
+    {term}
+    
+    Given List of Columns:
+    {dataset_columns}
+
+    ### **Outputs**
+    
+    **Your response must follow these instructions**:
+    {format_instructions}
+
+  lexical_term_similarity_eval_prompt: |
+   You are a database analyst specializing in extracting relevant columns from a database. You are given a term and a list of columns. Your task is to analyze the list of columns and the given term to determine whether the term is lexically similar, generalising to all the columns in the given list.
+
+    ### **Definition**
+
+    **Lexical Similarity**: The following two conditions must be met for a given term and column name to hold valid lexical similarity:
+        1. The term and column share common words, tokens or segments, and have a similar writing style or structure. 
+        2. The term must generalise to the column name.
+            - term should NOT contain token, word, or segment that does not appear in or could be linked to the column.
+            - term must not be an exact match with the column name.
+      * **Valid Examples:** 
+         * `"customer"` term and `"Customer_Email"` column name are lexically similar, sharing the token "customer". The term also generalises to the column name.
+         * `"contact_number"` term and `"Employee_Contact_Number"` column name are lexically similar sharing common segment "contact_number". The term also generalises to the column name.
+         * `"Batch Order Generated Number"` term  and `"Batch Order Generated Transfer Number"` column share common tokens and similar writing structure. Also, the term generalises to the column name, not containing the token 'transfer' found in the column name.
+         * `"emp"` term and "empName"` column name share common segment `emp`', which generalises the column name.
+         * `"cost information"` and "Cost" are lexically similar as 'information' could be used for generalisation. Similarly, other keywords such as 'data' or 'value' can be used for generalisation. 
+      * **Invalid Example:**
+         * `"Order #"` term and `"delayed orders"` column name are not lexically similar as term contains "#" which cannot be linked with the column name" 
+         * `"EmployeeName"` term and `"CustomerID"` column name are not lexically similar as  both do not share any common tokens).
+         * `"dept name"` term and `"Department Name"` column name are not lexically smiliar as term is an exact match with the column name. 'dept' is a minor variation of 'department'.
+         * `"invoice id"` term and `"Invoice Allocated Serial Number"` column name are not lexically similar as 'id' token in term cannot apply to the given column name.
+         * `"Count Customer"` term and `"Customer Count"` column name are not lexically similar as this represents an exact match case.
+    
+    ### **Instructions**
+
+    1.  **Analyze**: 
+         * Compare the `Given Term` with each column of the `Given Column List` using the given `Lexical Similarity` definition.
+            * The given term must be lexically similar to each column in the list.
+            * The two conditions of lexically similarity must be satisfied for each term and column comparison.
+         * Ignore the case (uppercase or lowercase) and singular or plural variations when making the comparison e.g., 'Customer', 'customer', 'CUSTOMER', 'Customers', and 'customers' represent the same term. 
+         * Ignore minor variations of tokens. For example:
+            * 'no.', 'num' and '#' represent the same token.
+            * 'Employee Number',  'Number Employee', 'Employee #' and '# Employee' represents the same entity.
+         * Only focus on the lexical similarity, do not consider the meaning of the words or tokens.
+    2.  **Decide**: Determine the outcome of the analysis
+            * Outcome is `"valid"` if the term satisfies the lexical similarity criterion for all the columns in the given list. Otherwise, it is `"invalid"`.         
+            * Even if the term is not lexically similar to one of the columns in the given list then the outcome is `"invalid"`. 
+    3.  **Explain**: Provide a brief reason for your decision.
+    4.  **Constraints**:
+            * Base your reason strictly on the provided definitions.
+            * The reason should be specific to the given term and list of columns.
+            * Do not use any external knowledge or make assumptions.
+    5.  **Format**: Structure your entire response according to the `Output Format` instructions
+
+    
+    ### **Inputs**
+
+    Given Term:
+    {term}
+    
+    Given List of Columns:
+    {cols_to_compare}
+
+    ### **Outputs**
+    
+    **Your response must follow these instructions**:
+    {format_instructions}
+
+  semantic_term_similarity_eval_prompt: |
+
+   You are a database analyst specializing in extracting relevant columns from a database. You are given a term and a list of columns. Your task is to analyze the list of columns and the given term to determine whether the term is semantically similar, generalising to all the columns in the given list.
+
+     ### **Definition**
+
+    **Semantic Similarity**: The column and term are semantically similar if they share meaning based on their underlying concepts, such that they refer to related or overlapping ideas in a knowledge space.
+        1. The term should represent the high-level concept or category of the column name even if they are not identical in wording. The catgeory or concept can be inferred from column names and values it would potentially contain (data type).
+        2. The term must not be too generic. Instead, it should be specific to the column name.
+            * consider the context of names to infer the value it can store. The term and column should hold similar information specific to context.
+        3. The term must not be an exact match with the column name.
+        4. The term should not contain segment or tokens that can be linked to column name e.g., "customer identity" term can be mapped to "customer id" column. This violates the similarity criterion.
+    * **Valid Examples:** 
+         * `"customer profile"` term and `"Customer_Email"` column name are semantically similar as customer profile addresses customer's personal information. The term is specific to the column name.
+         * `"expenses"` term and `"Total Sales Tax"` column name are semantically similar as tax ccan be considered as one of the expenses.
+         * `"organisation info"` term  and `"CompanyName"` column name are semantically similar as organisation info can cover details specific to a company.
+         * `"weather"` term and "temperature"` column name are sementically similar as temperature can be categorised under weather. 
+         * `"financial metadata"` term and `"currency_type"` column name are semantically similar as the term represent a high-level concept specific to the column name.
+         * `"customer feedback"` term and `"Satisfaction Rating"` column name are semantically similar as the term represent a high-level category specific to the column name.
+    * **Invalid Example:**
+         * `"tax expense"` term and `"Sales Tax per Order"` column name are not semantically similar as term contains "tax" can be linked with the column name, which violates the similarity definition" 
+         * `"order #"` term and `"OrderID"` column name are not semantically similar as "#" can be used as an alternative to "ID".
+         * `"dept name"` term and `"Department Name"` column name are not semantically smiliar as term is an exact match with the column name. 'dept' is a minor variation of 'department'.
+         * `"label"` term and `"Customer Name"` column name are not semantically similar as "label" is generic and cannot be specifically linked with customer name
+         * `"financial metrics"` term and "discount_code" column name are not semantically similar as discount code is not a financial metric.
+         * `"Variance"` term and `"planned_expense"` column name are not semantically similar as variance is not specific to the given column name.
+         * `"Velocity"` term and `"physical metric"` column name are not semantically similar, as velocity cannot be directly linked to physical characteristics and is not considered a tangible property.
+
+    ### **Instructions**
+
+    1.  **Analyze**: 
+         * Compare the `Given Term` with each column of the `Given Column List` using the given `Semantic Similarity` definition.
+            * The given term must be semantically similar to each column in the list.
+            * The four conditions of semantic similarity must be satisfied for each term and column comparison.
+            * Infer each column's underlying concept from column names and values it would potentially contain (data type).
+    2.  **Decide**: Determine the outcome of the analysis
+            * Outcome is `"valid"` if the term satisfies the semantic similarity criterion for all the columns in the given list. Otherwise, it is `"invalid"`.         
+            * Even if the term is not semantic similar to one of the columns in the given list then the outcome is `"invalid"`. 
+    3.  **Explain**: Provide a brief reason for your decision.
+    4.  **Constraints**:
+            * Base your reason strictly on the provided definitions.
+            * The reason should be specific to the given term and list of columns.
+    5.  **Format**: Structure your entire response according to the `Output Format` instructions
+
+    
+    ### **Inputs**
+
+    Given Term:
+    {term}
+    
+    Given List of Columns:
+    {cols_to_compare}
+
+    ### **Outputs**
+    
+    **Your response must follow these instructions**:
+    {format_instructions}
+
+  lexical_term_dissimilarity_eval_prompt: |
+   You are a database analyst specializing in extracting relevant columns from a database. You are given a term and list of columns. Your task is to analyze the given columns and term to determine whether the term does not matches with any of the columns of the schema or not.
+
+   ### **Definition**
+
+   **Dissimilarity Criterion**: A term is referred to be dissimilar to columns in the given list if the following constraints are met:
+      * The exact match of the term with all of the columns of a schema does not exist. 
+      * If the exact match does not exist and the entire term cannot be linked with more than three columns of the given list.
+         * If the term can be linked with or mapped to three or less columns then it can be considered as valid.  Otherwise, it is invalid.
+         * Strictly focus on lexical comparison, not on semantic similarity.
+      * **Constraints**
+         * The entire term should be considered for comparison, not just a section or segment of it. 
+            * All tokens, words, or segments of the term must be linked with the column name for invalid cases.
+            * For example, 'transaction outgoing amount' cannot be mapped to 'account amount' because the tokens 'transaction' and 'outgoing' are not related to 'account amount'. Hence, the term holds valid dissimilarity with the column name.
+         * Ignore the case (uppercase or lowercase), singular plural and minor variations during the comparison and analysis For example:
+            *'Customer Count', 'customer count', 'CUSTOMER COUNT', 'customer_count' and 'customer counts' represent the same column. 
+            * 'no.', 'number' or '#' represent the same word or token. 
+            * 'Customer Count' and 'Count Customer' represent the same column. 
+         * Ignore minor variations of tokens or words. For example, 'no.', 'num' and '#' represent the same token. Similarly, "department" and "dept" represents the same token.
+            * Variations in the words or tokens between a column and a term do not qualify as minor differences. For example:
+               * term 'transaction amount' is not a variant of 'transaction outgoing charges' column. This represents valid dissimilarity case.
+               * term 'Inventory Allocated Batch Number' is not a variant of 'Inventory Restricted Number' column. This represents valid dissimilarity case.
+            
+   ### **Instructions**
+
+   1. **Analyze**: 
+         * Compare the `Given Term` with each column of the `Database Schema` and check that the term is dissimilar to each of them.
+   2. **Decide**:  Outcome is `"valid"` if the term is dissimilar to all the columns of the given schema. Otherwise, its `"invalid"`.         
+   3. **Explain**: Provide a brief reason for your decision.
+   4. **Constraints**:
+         * Base your reason strictly on the provided definitions.
+         * The reason should be specific to the given term and database schema. Provide specific colum names if similarity is found between term and columns.
+         * Do not use any external knowledge or make assumptions.
+   5. **Format**: Structure your entire response according to the `Output Format` instructions
+
+   **Examples**
+      
+      Given List of Columns: 
+          ["Employee ID",
+          "Employee Name",
+          "Employee Salary",
+          "Employee Title",
+          "Order Number",
+          "Total Orders",
+          "Yearly Orders",
+          "Order Cost",
+          "Order Start Date",
+          "Total Sales Tax",
+          "Monthly Orders",
+          "Order End Date",
+          "Order Generated Transfer Number",
+          "Order Generated", 
+          "Annual Cost",
+          "Company Name",
+          "Department",
+          "Sales Tax per Item",
+          "Category",
+          "Cost",
+          "Sales Tax per Order"]
+  
+      Example 1: 
+      Given Term: 'order date'
+      Outcome: 'valid'
+      Reason: "The term 'order date' can map to "Order Start Date" and "Order End Date" columns of the given schema. As the term can be linked with less than three columns, it is considered valid"
+
+      Example 2:
+      Given Term: 'quarter date'
+      Outcome: 'valid'
+      Reason: "The term 'quarter date' is valid as it does not maps to any column and no exact match exists with any of the columns of the given schema"
+       
+      Example 3: 
+      Given Term: 'cost'
+      Outcome: 'invalid'
+      Reason: "The given term 'cost' can be found in the given schema, hence the term is classified as invalid"     
+       
+      Example 4:
+      Given Term: 'order #'
+      Outcome: 'invalid'
+      Reason: "The term 'order #' is a variant of the column 'Order Number'. Hence, the term does not qualify for the dissimilarity criteria"
+       
+      Example 5: 
+      Given Term: 'order details'
+      Outcome: 'valid'
+      Reason: "The term 'order details' cannot be linked with any columns in the given list, which qualifies the constraints of the dissimilarity criteria"
+
+      Example 6: 
+      Given Term: 'employee salaries'
+      Outcome: 'invalid'
+      Reason: "The term 'employee salaries' is a variant of the column 'Employee Salary'. As the given term can be linked with a specific column of teh given schema, it does not qualify for the dissimilarity criteria"
+
+      Example 7: 
+      Given Term: 'customer name'
+      Outcome: 'valid'
+      Reason: "The term 'customer name' is valid as it does not maps to any column and no exact match exists with any of the columns of the given schema"
+     
+   ### **Inputs**
+
+   Given Term:
+   {term}
+    
+   List of Columns:
+   {cols_to_compare}
+
+    ### **Outputs**
+    
+    **Your response must follow these instructions**:
+    {format_instructions}
+
+  semantic_term_dissimilarity_eval_prompt: |
+   You are a database analyst specializing in extracting relevant columns from a database. You are given a term and list of columns. Your task is to analyze the given columns and term to determine whether the term does not matches with any of the columns of the schema or not.
+
+   ### **Definition**
+
+   **Dissimilarity Criterion**: A term is referred to be dissimilar to columns in the given list if the following constraints are met:
+      * The exact match of the term with all of the columns of a schema does not exist. 
+      * If the exact match does not exist and the entire term cannot be linked with more than three columns of the given list.
+         * If the term can be linked with or mapped to three or less columns then it can be considered as valid.  Otherwise, it is invalid.
+         * Strictly focus on lexical comparison, not on semantic similarity.
+      * **Constraints**
+         * The entire term should be considered for comparison, not just a section or segment of it. 
+            * All tokens, words, or segments of the term must be linked with the column name for invalid cases.
+            * For example, 'transaction outgoing amount' cannot be mapped to 'account amount' because the tokens 'transaction' and 'outgoing' are not related to 'account amount'. Hence, the term holds valid dissimilarity with the column name.
+         * Ignore the case (uppercase or lowercase), singular plural and minor variations during the comparison and analysis For example:
+            *'Customer Count', 'customer count', 'CUSTOMER COUNT', 'customer_count' and 'customer counts' represent the same column. 
+            * 'no.', 'number' or '#' represent the same word or token. 
+            * 'Customer Count' and 'Count Customer' represent the same column. 
+         * Ignore minor variations of tokens or words. For example, 'no.', 'num' and '#' represent the same token. Similarly, "department" and "dept" represents the same token.
+            * Variations in the words or tokens between a column and a term do not qualify as minor differences. For example:
+               * term 'transaction amount' is not a variant of 'transaction outgoing charges' column. This represents valid dissimilarity case.
+               * term 'Inventory Allocated Batch Number' is not a variant of 'Inventory Restricted Number' column. This represents valid dissimilarity case.
+            
+   ### **Instructions**
+
+   1. **Analyze**: 
+         * Compare the `Given Term` with each column of the `Database Schema` and check that the term is dissimilar to each of them.
+   2. **Decide**:  Outcome is `"valid"` if the term is dissimilar to all the columns of the given schema. Otherwise, its `"invalid"`.         
+   3. **Explain**: Provide a brief reason for your decision.
+   4. **Constraints**:
+         * Base your reason strictly on the provided definitions.
+         * The reason should be specific to the given term and database schema. Provide specific colum names if similarity is found between term and columns.
+         * Do not use any external knowledge or make assumptions.
+   5. **Format**: Structure your entire response according to the `Output Format` instructions
+
+   **Examples**
+      
+      Given List of Columns: 
+          ["Employee ID",
+          "Employee Name",
+          "Employee Salary",
+          "Employee Title",
+          "Order Number",
+          "Total Orders",
+          "Yearly Orders",
+          "Order Cost",
+          "Order Start Date",
+          "Total Sales Tax",
+          "Monthly Orders",
+          "Order End Date",
+          "Order Generated Transfer Number",
+          "Order Generated", 
+          "Annual Cost",
+          "Company Name",
+          "Department",
+          "Sales Tax per Item",
+          "Category",
+          "Cost",
+          "Sales Tax per Order"]
+  
+      Example 1: 
+      Given Term: 'order date'
+      Outcome: 'valid'
+      Reason: "The term 'order date' can map to "Order Start Date" and "Order End Date" columns of the given schema. As the term can be linked with less than three columns, it is considered valid"
+
+      Example 2:
+      Given Term: 'quarter date'
+      Outcome: 'valid'
+      Reason: "The term 'quarter date' is valid as it does not maps to any column and no exact match exists with any of the columns of the given schema"
+       
+      Example 3: 
+      Given Term: 'cost'
+      Outcome: 'invalid'
+      Reason: "The given term 'cost' can be found in the given schema, hence the term is classified as invalid"     
+       
+      Example 4:
+      Given Term: 'order #'
+      Outcome: 'invalid'
+      Reason: "The term 'order #' is a variant of the column 'Order Number'. Hence, the term does not qualify for the dissimilarity criteria"
+       
+      Example 5: 
+      Given Term: 'order details'
+      Outcome: 'valid'
+      Reason: "The term 'order details' cannot be linked with any columns in the given list, which qualifies the constraints of the dissimilarity criteria"
+
+      Example 6: 
+      Given Term: 'employee salaries'
+      Outcome: 'invalid'
+      Reason: "The term 'employee salaries' is a variant of the column 'Employee Salary'. As the given term can be linked with a specific column of teh given schema, it does not qualify for the dissimilarity criteria"
+
+      Example 7: 
+      Given Term: 'customer name'
+      Outcome: 'valid'
+      Reason: "The term 'customer name' is valid as it does not maps to any column and no exact match exists with any of the columns of the given schema"
+     
+   ### **Inputs**
+
+   Given Term:
+   {term}
+    
+   List of Columns:
+   {cols_to_compare}
+
+    ### **Outputs**
+    
+    **Your response must follow these instructions**:
+    {format_instructions}
+  
+  confusion_validity_term_eval_prompt: |
+    You are a database analyst specializing in extracting relevant columns from a database. You are given a term and a list of columns. Your task is to analyze the list of columns and the given term to determine whether the term is lexically and semantically different to the columns and represents an confusing term, without being an exact match or a direct representation of any of them.
+    
+    ### **Definition**
+
+    **Confusion**: Confusion arises between a term and list of columns if it is not clear which column name is being referred by the term in the given list. A valid confusing term cannot be linked with more than one column in the given list.
+      * The following conditions must be met for a valid confusing term:
+          * The confusing term should be lexically and semantically different to all of the columns in the list.
+          * The confusing term must not exactly match the name of any column in the provided list.
+          * The confusing term MUST not be a generic synonym or paraphrased word.
+          * The confusing term MUST be in the same domain of the list of database columns.   
+      ### **Instructions**
+      1.  **Analyze**: 
+          * Compare the `Given Term` with each column of the `Given Column List` using the given `Confusion` definition.
+          * Focus on the conditions of the confusion criterion to identify valid confusing term.
+      2.  **Decide**: Outcome is `"valid"` if the term is confusing. Otherwise, its `"invalid"`.
+      3.  **Explain**: Provide a brief reason for your decision.
+      4.  **Constraints**:
+          * Base your reason strictly on the provided definitions.
+          * The reason should be specific to the given term and list of columns.
+          * Do not use any external knowledge or make assumptions.
+      5.  **Format**: Structure your entire response according to the `Output Format` instructions
+
+    
+      ### **Inputs**
+
+      Given Term:
+      {term}
+      
+      Given List of Columns:
+      {dataset_columns}
+
+      ### **Outputs**
+      
+      **Your response must follow these instructions**:
+      {format_instructions}
+
+  confusion_validity_value_eval_prompt: |
+    You are a database analyst specializing in extracting relevant columns from a database. Given a column of interest, a list of its values, and a potentially confusing value, your task is to analyze the list and the column to determine whether the given value is confusing i.e, it does not exactly match any value in the list.
+    ### **Definition**
+
+    **Confusion**: Confusion arises when the given value for a column of interest does not exist in the list of values for that column.
+      * The following conditions must be met for a valid confusing term:
+          * The confusing value does not match any of the values in the given list.
+          * The confusing value is similar to the values in the given list, indicating that it represents the same domain. 
+          * As the name of the column and given list of values help in identifying the domain type of the column of interest, the confusing value MUST correspond to the domain type.
+            - For textual confusing value, either it represents a new value not present in the given list, or a misspelled or singular/plural variant of one of the values in the list.
+            - For numerical confusing value, it is not present in the given list but falls within the constraints of the identified domain e.g., a body temperature value.
+            - For categorical confusing value, its value is within the constraints of the identified domain which does not exist in the given list.
+     
+      ### **Instructions**
+      1.  **Analyze**: 
+          * Compare the `Given Value` with each value of the `Given Value List` for `Column of Interest` using the given `Confusion` definition.
+          * Focus on the conditions of the confusion criterion to identify valid confusing value.
+      2.  **Decide**: Outcome is `"valid"` if the value is confusing. Otherwise, its `"invalid"`.
+      3.  **Explain**: Provide a brief reason for your decision.
+      4.  **Constraints**:
+          * Base your reason strictly on the provided definitions.
+          * The reason should be specific to the given term and list of columns.
+      5.  **Format**: Structure your entire response according to the `Output Format` instructions
+
+    
+      ### **Inputs**
+
+      Given Value:
+      {term}
+      
+      Given Column of Interest:
+      {coi}
+
+      Given List of Values:
+      {coi_value}
+
+      ### **Outputs**
+      
+      **Your response must follow these instructions**:
+      {format_instructions}
+
+  confusion_term_dissimilarity_eval_prompt: |
+    You are a database analyst specializing in analyzing columns of a database. You are given a term and list of columns. Your task is to analyze the given columns and term to determine whether the term does not matches with any of the columns of the schema or not.
+
+    ### **Definition**
+
+    **Dissimilarity Criterion**: A term is referred to be dissimilar to columns in the given list if the following constraints are met:
+        * The exact match of the term with all of the columns of a schema does not exist. 
+        * If the exact match does not exist and the entire term cannot be linked with any columns of the given list.
+          * Strictly focus on lexical and semantic comparison.
+        * **Constraints**
+          * The entire term should be considered for comparison, not just a section or segment of it.
+              * All tokens, words, or segments of the term must be analyzed.
+              
+    ### **Instructions**
+
+    1. **Analyze**: 
+          * Compare the `Given Term` with each column of the `Database Schema` and check that the term is dissimilar to each of them.
+    2. **Decide**:  Outcome is `"valid"` if the term is dissimilar to all the columns of the given schema. Otherwise, its `"invalid"`.         
+    3. **Explain**: Provide a brief reason for your decision.
+    4. **Constraints**:
+          * Base your reason strictly on the provided definitions.
+          * The reason should be specific to the given term and database schema. Provide specific column names if similarity is found between term and columns.
+          * Do not use any external knowledge or make assumptions.
+    5. **Format**: Structure your entire response according to the `Output Format` instructions
+      
+    ### **Inputs**
+
+    Given Term:
+    {term}
+      
+    List of Columns:
+    {dataset_columns}
+
+    ### **Outputs**
+      
+    **Your response must follow these instructions**:
+    {format_instructions}
+
+  utt_generator_prompt: |
+    You are a SQL expert specializing in natural language (NL)-to-SQL translation and data generation.
+    Your task is to generate a natural language query from the given SQL query. This query is then used to generate its ambiguous version.
+    The ambiguous version represents a natural language query that cannot be converted into SQL statement as the specification of column is not clear
+
+    ### **Instructions**
+
+    1. **Natural Language Query Generation**:
+      - Using the given SQL query, write a natural language query that would generate the given SQL query
+      - Strictly use the column names mentioned in the SQL query and its context to generate the natural language query. Do not make any assumptions
+      - All the column names mentioned in the SQL query must be explicitly mentioned in the natural language query.
+      - A reference natural language query is provided. Use similar writing style and tone to generate the natural language query.
+    2. **Ambiguous Query Generation**:
+      - You are given a list of column names and corresponding ambiguous terms. Use these to generate an ambiguous query where the given column is replaced with the ambiguous term.
+         - strictly use the given column name to replace it with the corresponding ambiguous term for the ambiguous query.
+      - Use the generated natural language query and the given list of ambiguous candidates to generate its ambiguous variant as a user request.
+      - Ensure the replacements create reasonable uncertainty about column references while still preserving interpretability.
+      - Retain key contextual elements so that the ambiguous question still guides toward the SQL query but introduces a genuine need for clarification.
+      - Ensure that the ambiguous version is genuinely unclear about which column is being referenced. Despite the ambiguity, the query should still make logical sense in the context of the SQL statement.
+      - Strictly base the modifications on the given details and constraints. Do not introduce any assumptions or external knowledge beyond the schema.
+    3. **Constraints**:
+      - The generated natural language query and its ambiguous variant should correspond to the same underlying SQL query. The aim of the queries should not change.
+      - The generated natural language query should be written in a human-like style and should not use the exact column names format found in the SQL query. Use the provided examples as a guide.
+        - Use natural language variant of the column name e.g., for column name "customer_id", use "customer id"
+        - If possible, avoid converting a singular ambiguous term into its plural form when generating the natural language query.
+      - Write concise queries e.g, for where condition "amount>=10", the natural language query could be "for amount greater than or equal to".
+      - Ensure the natural language query accurately reflects the SQL query and corresponds to each distinct command it contains.
+      - Do not convert "joins" in the SQL query to natural query instruction.
+      - Do not mention the database or table name in the generated natural language query.
+      - Consider the history if available when generating the response. 
+         - The history contains issues with the generated query that mismatches with the given SQL query. Use this history to rewrite the queries to fix the error(s).
+      - Examples are provided as guide to generate accurate response and avoid any mistakes.
+    4. **Format**:
+      - Strictly generate response requested in the output instructions. 
+      - DO NOT GENERATE any other supplementary explanation or description. Strictly generate output as mentioned in the output format
+
+     ### **Examples**
+     
+     Example 1: Given SQL Query: 'SELECT count("Monthly Orders"), "Employee ID" FROM my_data GROUP BY "Employee ID" ORDER BY Employee Name ASC'
+                Given Column Names: ["Monthly Orders"]
+                Given Ambiguous Terms: ["orders"]
+                History: None
+                Reference Natural Language Query: "What is the total number of yearly orders by client ID sorted by client name?"
+                Generated NL Query: "What are the number of monthly orders by employee id sorted on employee name"?
+                Generated NL Ambiguous Query: "What are the number of orders by employee id sorted on employee name"?
+
+    Example 2: Given SQL Query: 'SELECT "Order Detail", "Start Date" FROM my_data WHERE "Start Date" = "01-01-2010" AND "Employee ID" = 454 ORDER BY Department ASC'
+               Given Column Names: ["Start Date", "Employee ID"]
+               Given Ambiguous Terms: ["date", "employee"]
+               History: None
+               Reference Natural Language Query: "Display the client information for client id 178 with a start date of 11-11-2000, sorted by country."
+               Generated NL Question: "display order detail when start date is 01-01-2010 and employee id is 454 sorted on department"
+               Generated NL Ambiguous Query: "display order detail when date is 01-01-2010 and employee is 454 sorted on department"
+    
+    Example 3: Given SQL Query: "SELECT Host_Name FROM farm_competition WHERE Theme !=  'Fantasy' and Total_Participants<=50"
+               Given Column Names: ["Host_Name"]
+               Given Ambiguous Terms: ["host"]
+               History: None
+               Reference Natural Language Query: "Return the names of clients for internet services where the company is not 'Newtelco' and number of client are less than or equal to 1000."
+               Generated NL Question: 'Return the host name of competitions when theme is not "Fantasy" and total participants are less than or equal to 50?'
+               Generated NL Ambiguous Query: 'Return the host of competitions when theme is not "Fantasy" and total participants are less than or equal to 50?'
+
+    Example 4: Given SQL Query: "SELECT T1.product_name, T2.sales_price FROM Products AS T1 JOIN Product_Pricing AS T2 ON T1.product_id = T2.product_id"
+               Given Column Names: ["product_name", "sales_price"]
+               Given Ambiguous Terms: ["product", "revenue"]
+               History: None
+               Reference Natural Language Query: "Can you provide the sales prices for each product name?"
+               Generated NL Question: "Can you show me the sales prices for all the product names?"
+               Generated NL Ambiguous Query: "Can you show me the revenue for all the products?"
+
+    Example 5: Given SQL Query: 'SELECT P.ProjectName FROM Project AS P JOIN WorksOn AS W ON P.ProjectID = W.ProjectID GROUP BY P.ProjectID ORDER BY COUNT(*) ASC LIMIT 1'
+               Given Column Names: ["ProjectName"]
+               Given Ambiguous Terms: ["name"]
+               History: None
+               Reference Natural Language Query: "What project has the lowest number of employees?"
+               Generated NL Question: "What is the project name with fewest employees?"
+               Generated NL Ambiguous Query: "What is the project name with fewest employees?"   
+    
+    Example 6: Given SQL Query: "SELECT T1.customer_name, T2.billing_address, T2.order_amount FROM Customers AS T1 JOIN Orders AS T2 ON T1.customer_id = T2.customer_id"
+               Given Column Name: ["order_amount", "billing_address"]
+               Given Ambiguous Term: ["expense", "address"]
+               History: None
+               Reference Natural Language Query: "What are the names of customers, their billing addresses, and the amounts of their orders?"
+               Generated NL Question: "What are the customer names, billing addresses, and order amounts?"
+               Generated NL Ambiguous Query: "What are the customer names, addresses, and expenses?"
+
+    Example 7: Given SQL Query: "SELECT C.customer_number, C.residential_address FROM Customers AS C JOIN Service_Requests AS S ON C.customer_number = S.customer_id GROUP BY C.customer_number ORDER BY COUNT(*) DESC LIMIT 1"
+               Given Column Names: ["residential_address"]
+               Given Ambiguous Terms: ["personal information"]
+               History: None
+               Reference Natural Language Query: "Which customer submitted the highest number of service requests? Display their customer ID and home address."
+               Generated NL Question: "Which customer has submitted the most service requests? Return the customer number and residential addresses."
+               Generated NL Ambiguous Query: "Which customer has submitted the most service requests? Return the customer number and personal information."
+   
+    Example 8: Given SQL Query: 'SELECT "Item Code", "Production Date" FROM my_dataset GROUP BY "Item Code" ORDER BY count(*) DESC LIMIT 1'
+               Given Column Names: ["Item Code", "Production Date"]
+               Given Ambiguous Terms: ["item", "date"]
+               History: None
+               Reference Natural Language Query: "What item code appears most frequently, and what is its production date?"
+               Generated NL Question: "What is the most common item code and its production date?"
+               Generated NL Ambiguous Query: "What is the most common item and its date?"
+
+    Example 9: Given SQL Query: 'SELECT "Item Type",  avg("Cost") FROM my_dataset GROUP BY "Item ID"'
+               Given Column Names: ["Item Type"]
+               Given Ambiguous Terms: ["item"]
+               History: None
+               Reference Natural Language Query: "What is the average price for every type of item?"
+               Generated NL Question: "What is the average cost for each item type?"
+               Generated NL Ambiguous Query: "What is the average cost for each item?"    
+
+    Example 10: Given SQL Query: 'SELECT count("Annual Orders"), "Vendor ID" FROM Sales where Year = 2000 GROUP BY "Vendor ID"' '
+                Given Column Names: ["Annual Orders"]
+                Given Ambiguous Terms: ["purchases"]
+                History: None
+                Reference Natural Language Query: "What is the total number of yearly orders by vendor id for year 2000?"
+                Generated NL Query: "What are the number of annual orders by vendor id for year 2000"?
+                Generated NL Ambiguous Query: "What are the number of purchases by vendor id for year 2000"?
+    
+
+    ### **Inputs**
+    Given SQL Query:
+    {expected_query}
+    
+    Given Column Names:
+    {cois}
+
+    Given Ambiguous Terms:
+    {term}
+
+    History:
+    {history_conv}
+
+    Reference Natural Language Query:
+    {question}
+
+    ### **Outputs**
+    
+    **Your response must follow these instructions**:
+    {format_instructions}
+
+  utt_value_generator_prompt: |
+    You are a SQL expert specializing in natural language (NL)-to-SQL translation and data generation.
+    Your task is to generate a natural language query from the given SQL query. This query is then used to generate its ambiguous version.
+    The ambiguous version represents a natural language query that cannot be converted into SQL statement unless value for a column in where clause is not clear with respect to the schema values.
+
+    ### **Instructions**
+
+    1. **Natural Language Query Generation**:
+      - Using the given SQL query, write a natural language query that would generate the given SQL query
+      - Strictly use the column names mentioned in the SQL query and its context to generate the natural language query. Do not make any assumptions
+      - All the column names mentioned in the SQL query must be explicitly mentioned in the natural language query.
+      - The values in the where clause of the SQL query must be exactly mentioned in the natural language query
+      - A reference natural language query is provided. Use similar writing style and tone to generate the natural language query.
+    2. **Ambiguous Query Generation**:
+      - You are given a list of column names and corresponding values. Use these to generate an ambiguous query where the value for the column in the where clause is replaced with the given ambiguous value. 
+      - Use the exact ambiguous values provided in the query. These values may be misspelled versions of valid textual entries, so DO NOT modify them.
+      - Use the generated natural language query and the given list of ambiguous candidates to generate its ambiguous variant as a user request.
+      - Ensure the replacements create reasonable uncertainty about column references while still preserving interpretability.
+      - Retain key contextual elements so that the ambiguous question still guides toward the SQL query but introduces a genuine need for clarification.
+      - Despite the ambiguity, the query should still make logical sense in the context of the SQL statement.
+      - Strictly base the modifications on the given details and constraints. Do not introduce any assumptions or external knowledge.
+    3. **Constraints**:
+      - The generated natural language query and its ambiguous variant should correspond to the same underlying SQL query. The aim of the queries should not change.
+      - The generated natural language query should be written in a human-like style and should not use the exact column names format found in the SQL query.
+        - For example use "customer name" instead of exact column name "customer_name"
+      - Write concise queries. Use the given examples as guide
+      - Ensure the natural language query accurately reflects the SQL query and corresponds to each distinct command it contains.
+      - Do not convert "joins" in the SQL query to natural query instruction.
+      - Do not mention the database or table name in the generated natural language query.
+      - Consider the history if available when generating the response. 
+         - The history contains issues with the generated query that mismatches with the given SQL query. Use this history to rewrite the queries to fix the error(s).
+      - Examples are provided as guide to generate accurate response and avoid any mistakes.
+    4. **Format**:
+      - Strictly generate response requested in the output instructions. 
+      - DO NOT GENERATE any other supplementary explanation or description. Strictly generate output as mentioned in the output format
+
+     ### **Examples**
+
+    Example 1: Given SQL Query: 'SELECT "Order Detail", "Start Date" FROM my_data WHERE "Start Date" = "01-01-2010" AND "Employee ID" = 454 ORDER BY Department ASC'
+               Given Column Names: ["Start Date", "Employee ID"]
+               Given Ambiguous Value: ["11-12-1988", "304"]
+               History: None
+               Reference Natural Language Query: "Display the client information for client id 178 with a start date of 11-11-2000, sorted by country."
+               Generated NL Question: "display order detail when start date is 01-01-2010 and employee id is 454 sorted on department"
+               Generated NL Ambiguous Query: "display order detail when start date is 11-12-1988 and employee id is 304 sorted on department"
+    
+    Example 2: Given SQL Query: "SELECT Host_Name FROM farm_competition WHERE Theme !=  'Fantasy'"
+               Given Column Names: ["Theme"]
+               Given Ambiguous Values: ["Drama"]
+               History: None
+               Reference Natural Language Query: "Return the names of clients for internet services where the company is not 'Newtelco'."
+               Generated NL Question: 'Return the host name of competitions when theme is not "Fantasy"?'
+               Generated NL Ambiguous Query: 'Return the host name of competitions when theme is not "Drama"?'
+
+    Example 3: Given SQL Query: 'SELECT C.customer_number, C.residential_address FROM Customers AS C JOIN Service_Requests AS S ON C.customer_number = S.customer_id WHERE C.city = "SYDNEY" GROUP BY C.customer_number ORDER BY COUNT(*) DESC LIMIT 1'
+               Given Column Names: ["city"]
+               Given Ambiguous Values: ["Perth"]
+               History: None
+               Reference Natural Language Query: "Which customer submitted the highest number of service requests in USA country? Display their customer ID and home address."
+               Generated NL Question: "Find the customer in the city of Sydney who has made the highest number of service requests. Return their customer number and residential address."
+               Generated NL Ambiguous Query: "Find the customer in the city of Perth who has made the highest number of service requests. Return their customer number and residential address."
+
+    Example 4: Given SQL Query: 'SELECT count("Annual Orders"), "Vendor ID" FROM Sales where "Company Name" = "Technological Advancements Co" GROUP BY "Vendor ID"'
+                Given Column Names: ["Company Name"]
+                Given Ambiguous Values: ["Technology Advancements Co"]
+                History: None
+                Reference Natural Language Query: 'For the company named "Technological Advancements Co", count the number of yearly orders grouped by each vendor ID.'
+                Generated NL Query: 'For the company named "Technological Advancements Co", count the number of annual orders grouped by each vendor ID.'
+                Generated NL Ambiguous Query: 'For the company named "Technology Advancements Co", count the number of annual orders grouped by each vendor ID.'
+    
+
+    ### **Inputs**
+    Given SQL Query:
+    {expected_query}
+    
+    Given Column Names:
+    {coi}
+
+    Given Ambiguous Values:
+    {term}
+
+    History:
+    {history_conv}
+
+    Reference Natural Language Query:
+    {question}
+
+    ### **Outputs**
+    
+    **Your response must follow these instructions**:
+    {format_instructions}
+
+  utt_lexical_ambiguity_eval_prompt: |
+   You are a SQL expert specializing in natural language (NL)-to-SQL translation and data quality refinement.
+   You are given an ambiguous version of a natural language query. This ambiguity represents the use of generic words/terminology for a column which could be mapped to multiple columns in the database, consequently resulting in different SQl query translation. Your task is to assess the quality of the ambiguous version of the given query against the underlying SQL query.
+      
+   ### **Instructions**
+
+   1. **Ambiguity Assessment**: The ambiguous query should be compared with the given ambiguous term(s), relevant columns list, and underlying SQL query for assessment. Use the following instructions to identify the validity of the given ambiguous natural language query.
+         - The ambiguous version cannot be mapped to a valid SQL query unless the ambiguity is resolved.
+            - The ambiguity is linked with the column selection. This means that the sufficient details for a column are not mentioned in the ambiguous query.
+            - The given ambiguous term is mentioned in the natural language query that maps to the given relevant columns list. The term maps to all the columns in the given list.
+            - A seperate column list is provided for each ambiguous term.
+            - Each column in the list can be used to replace the ambiguous term to generate a valid SQL query. The given SQL query is primarily provided for ambiguity assessment.
+         - For the ambiguous query to be valid, the given ambiguous term(s) and the context of the query should not lead to generation of the SQL query.
+         - Check the context of the ambiguous query and relevant columns to assess that column(s) against ambiguous term(s) can be inferred or not. If the ambiguity can be resolved using the context, then the query is invalid.
+            - For example, if the query contains ambiguous term "ID" which could be linked with two columns "customer id" and "product id" but the context of the query is linked with product, then "product id" will be selected. Hence, the query is truly not ambiguous. 
+         - Assess whether the ambiguous query aligns with the data retrieval specification mentioned in the underlying SQL query. If there is a mismatch, the query should be considered invalid.
+         - If the same ambiguous term is used to refer to two different columns in the query, then it is invalid.
+         - If multiple ambiguous terms exist, all the terms should hold valid ambiguity for the query to be valid.
+   2. **Response Generation**: If the given ambiguous query satisfies the given conditions under **Ambiguity Assessment** then the outcome is 'valid'. Otherwise, it is 'invalid'.
+         - Provide a reason to justify the assessment.
+         - Response should be specific to given relevant columns list, natural language and SQL queries.
+   3.  **Constraints**:
+         - Case (uppercase or lowercase) and singular or plural variations do not qualify for ambiguity e.g., 'Customer', 'customer', 'CUSTOMER', 'Customers', and 'customers' represent the same term. 
+         - Ignore minor variations of tokens or words e.g., 'no.', 'num' and '#' represent the same token. Similarly, "department" and "dept" represents the same token.
+         - Ignore minor difference in order of the tokens or words e.g., "customer name" and "name customer" represents the same column.
+         - Base your reason strictly on the provided instructions.
+         - Do not use any external knowledge or make assumptions.
+         - Refrain from providing a SQL language-based response and instead, provide a natural language response.
+   4. **Response Format**: Strictly generate the response using the given output format. DO NOT generate any other content, text or explanation.
+      
+   ### **Examples**
+      
+   Example 1: NL Ambiguous Query: "What are the number of orders by employee sorted on employee name"?
+            Given Ambiguous Terms: ["orders", "employee"]
+            Relevant columns: [["Monthly Order", "Weekly Orders", "Yearly Orders"], ["Employee ID", "Designated Employee"]]
+            Underlying SQL Query: 'SELECT count("Monthly Orders"), "Employee ID" FROM my_data GROUP BY "Employee ID" ORDER BY "Employee Name" ASC'
+            Outcome: 'valid'
+            Reason: 'The terms "orders" and "employee" in the query are ambiguous when compared with the underlying query and relevant columns. This could be mapped to any columns of the mentioned in the list to generate a SQL query. If the "orders" and "employee" terms are not resolved then a SQl query cannot be generated"
+
+   Example 2: NL Ambiguous Query: "What are the customer names, addresses, and orders and id?"
+            Given Ambiguous Terms: ["id"]
+            Relevant columnss: [["customer_id", "employee_id"]]
+            Underlying SQL Query: "SELECT T1.customer_name, T2.customer_address, T2.order_amount FROM Customers AS T1 JOIN Orders AS T2 ON T1.customer_id = T2.customer_id"
+            Outcome: 'invalid'
+            Reason: 'The ambiguous term and query does not represent the correct data retrieval with respect to the SQL query. 'id' column is not requested for data retrieval in the SQL query.'
+
+   Example 3: NL Ambiguous Query: "Count the number of distinct item"
+            Given Ambiguous Terms: "item"
+            Relevant columnss: [["Item ID", "Item Name", "Item Description", "Item Code", "New Items ID"]]
+            Underlying SQL Query: 'SELECT count(DISTINCT "Item Code") FROM my_dataset'
+            Outcome: 'valid'
+            Reason: 'Considering the context of the ambiguous term "item" in the query, it can be wither linked with "Item Code", "Item ID" and "New Items ID" to generate a SQL query. So the ambiguous query is valid"
+
+   Example 4: NL Ambiguous Query: "Can you show me the product names, product and product description?"
+            Given Ambiguous Terms: ["product"]
+            Relevant columns: [["product_name", "product_description", "product_price"]]
+            Underlying SQL Query: "SELECT T1.product_name, T1.product_description, T2.product_price FROM Products AS T1 JOIN Product_Pricing AS T2 ON T1.product_id = T2.product_id"
+            Outcome: 'invalid'
+            Reason: 'The ambiguous query represents does not represent genuine ambiguity as two of the relevant columns "product_name" and "product_description" are already mentioned in the query and the ambiguius term "product" can be linked with the only column "product_price".'
+   
+   Example 5: NL Ambiguous Query: 'Return the host of competitions when theme is not "Fantasy"?'
+            Given Ambiguous Terms: ["host", "theme"]
+            Relevant columns: [["Primary Host", "Host Name", "Host ID", "Host Contact"], ["Bird Theme", "Animal Theme"]]
+            Underlying SQL Query: 'SELECT "Host Name" FROM farm_competition WHERE "Animal Theme" !=  "Fantasy"'
+            Outcome: 'valid'
+            Reason: 'The  term "host" and "theme" in the query are ambiguous when compared with the underlying query and relevant columns. This could be mapped to any columns of the given list to generate a SQL query. If the "host" and "theme" terms are not resolved then a SQl query cannot be generated"
+
+   Example 6: NL Ambiguous Query: 'Which customer has submitted the most service requests? Show the customer number and address?'
+            Given Ambiguous Terms: ["address"]
+            Relevant columns: [["customer_address", "manager_address", "delivery_address"]]
+            Underlying SQL Query: "SELECT C.customer_number, C.customer_address FROM Customers AS C JOIN Service_Requests AS S ON C.customer_number = S.customer_id GROUP BY C.customer_number ORDER BY COUNT(*) DESC LIMIT 1"
+            Outcome: 'invalid'
+            Reason: 'The query is requesting data for customer, so the term "address" can be linked with "customer_address" making the query unambiguous. Hence, the ambiguous query is invalid"
+
+   Example 7: NL Ambiguous Query: 'List each item id along with the average item'
+            Given Ambiguous Terms: ["item"]
+            Relevant columns: [["Item ID", "Item Name", "Item Cost", "Item Description"]]
+            Underlying SQL Query: 'SELECT ""Item ID",  avg("Item Cost") FROM my_dataset GROUP BY "Item ID"'
+            Outcome: 'invalid'
+            Reason: 'The query is requesting for average value linked with ambiguous term "item". Considering the context of the relevant columns, only "Item Cost" in the relevant columns can be linked with the "average" operation of the query, which makes the query unambiguous'
+
+   Example 8: NL Ambiguous Query: "Can you show me the customer, customer and customer email?"
+            Given Ambiguous Terms: ["customer", "customer"]
+            Relevant columns: [["customer_name", "customer_id", "customer_email"]]
+            Underlying SQL Query: "SELECT customer_id, customer_name, customer_email FROM my_data"
+            Outcome: 'invalid'
+            Reason: 'The ambiguous query represents is not valid as same ambiguous term is used to represent two different columns, "customer_name" and "customer_id". Each ambiguous term should be able to map with a different column for a valid query.'
+
+   Example 9: NL Ambiguous Query: 'Return the participants of competitions when member is not "standard"?'
+            Given Ambiguous Terms: ["participant", "member"]
+            Relevant columns: [["Primary Participant", "Participant Name", "Participant ID"], ["Competition Member", "Regular Member", "Guest Member"]]
+            Underlying SQL Query: 'SELECT "Participant Name" FROM my_data WHERE "Competition Membe" !=  "Standard"'
+            Outcome: 'valid'
+            Reason: 'Though term "participant" in the query is ambiguous when compared with the underlying query, the other term "member" is not ambiguous as the query is requesting members of competitions. Since, the context refers to competitions, "Competition Member" column can be linked with "member" term. As both the terms are not truly ambiguous, overall the query is unambiguous and invalid.'
+
+   ### **Inputs**
+
+   Ambiguous Natural Language Query:
+   {ac_query}
+
+   Ambiguous Term:
+   {term}
+
+   Relevant Columns
+   {cols_to_compare}
+
+   Possible SQL Query:
+   {expected_query}
+
+   ### **Outputs**
+   **Your response must follow these instructions**:
+   {format_instructions}
+
+  utt_semantic_ambiguity_eval_prompt: |
+   You are a SQL expert specializing in natural language (NL)-to-SQL translation and data quality refinement.
+   You are given an ambiguous version of a natural language query. This ambiguity represents the use of generic words/terminology for a column which could be mapped to multiple columns in the database, consequently resulting in different SQl query translation. Your task is to assess the quality of the ambiguous version of the given query against the underlying SQL query.
+      
+   **Ambiguity Task Definition**: A natural language query is considered ambiguous if it cannot be mapped to a valid SQL query unless the ambiguity is resolved.
+      - The ambiguity is linked with the column selection. This means that the sufficient details for a column are not mentioned in the ambiguous query.
+      - The given ambiguous term is mentioned in the natural language query maps to all the columns in the given list i.e, - Each column in the list can be used to replace the ambiguous term to generate a valid SQL query.
+      - A seperate column list is provided for each ambiguous term.
+      - The given SQL query is primarily provided for ambiguity assessment.
+         
+   ### **Instructions**
+
+   1. **Ambiguity Assessment**: The ambiguous query should be compared with the given ambiguous term(s), relevant columns list, and underlying SQL query for assessment. Use the following instructions to identify the validity of the given ambiguous natural language query.
+         - For the ambiguous query to be valid, the given ambiguous term(s) and the context of the query should NOT lead to a generation of the SQL query.
+            - A SQL query can only be generated when the ambiguous term(s) are resolved.
+         - Check the context of the ambiguous query and relevant columns to assess that column(s) against ambiguous term(s) can be inferred or not. If the ambiguity can be resolved using the context, then the query is invalid.
+            - For example, if the query contains ambiguous term "id" which could be linked with two columns "customer id" and "product id" but the context of the query is linked with product, then "product id" will be selected. Hence, the query is truly not ambiguous. 
+         - If the same ambiguous term is used to refer to two different columns in the query, then it is invalid.
+         - The query is invalid if an ambiguous term is encountered in the 'SELECT' clause, where all columns linked to the ambiguous term on columns can be used for SQL query generation.
+            - For this case, the ambiguous term should be closely linked with the given relevant columns. 
+            - For examples: "show customer profile for year 2000", the "customer profile" is closely linked with columns "customer_name" and "customer_id". Then both columns can be used to generate a SQL query. 
+            - This can apply to operations (such as COUNT, AVG etc.) on ambiguous terms. For example, for "show count of customer profile for year 2000", "count" operation can be applied to both "customer_name" and "customer_id".
+         - If multiple ambiguous terms exist, all the terms should hold valid ambiguity for the query to be valid.
+   2. **Response Generation**: If the given ambiguous query satisfies the given conditions under **Ambiguity Assessment** then the outcome is 'valid'. Otherwise, it is 'invalid'.
+         - Provide a reason to justify the assessment.
+         - Response should be specific to given relevant columns list, natural language and SQL queries.
+   3.  **Constraints**:
+         - Case (uppercase or lowercase) and singular or plural variations do not qualify for ambiguity e.g., 'Customer', 'customer', 'CUSTOMER', 'Customers', and 'customers' represent the same term. 
+         - Ignore minor variations of tokens or words e.g., 'no.', 'num' and '#' represent the same token. Similarly, "department" and "dept" represents the same token.
+         - Ignore minor difference in order of the tokens or words e.g., "customer name" and "name customer" represents the same column.
+         - Base your reason strictly on the provided instructions.
+         - Do not use any external knowledge or make assumptions.
+         - Refrain from providing a SQL language-based response and instead, provide a natural language response.
+   4. **Response Format**: Strictly generate the response using the given output format. DO NOT generate any other content, text or explanation.
+      
+   ### **Examples**
+      
+   Example 1: NL Ambiguous Query: 'Return the host name of competitions when comeptition type is not "Sport"?'
+              Given Ambiguous Terms: ["competition type"]
+              Relevant columns: [["Team Comeptition", "Individual Competition"]]
+              Underlying SQL Query: 'SELECT "Host Name" FROM competition WHERE "Individual Competition" !=  "Sport"'
+              Outcome: 'valid'
+              Reason: 'The  term "competition type" in the query is ambiguous when compared with the underlying query and relevant columns, as this needs to be resolved for SQL generation. The ambiguous term could be mapped to any columns of the given list to generate a SQL query. If  "competition type" is not resolved then a SQL query cannot be generated"
+   
+   Example 2: NL Ambiguous Query: "What are the customer addresses, identity, and orders?"
+              Given Ambiguous Terms: ["identity"]
+              Relevant columnss: [["customer_id", "customer_name"]]
+              Underlying SQL Query: "SELECT T1.customer_name, T2.customer_address, T2.order_amount FROM Customers AS T1 JOIN Orders AS T2 ON T1.customer_id = T2.customer_id"
+              Outcome: 'invalid'
+              Reason: 'The ambiguous term can be mapped to "customer_id" which makes the SQL query unambigious.'
+
+    Example 3: NL Ambiguous Query: 'Return the participant name of competitions when subscription is not "standard"?'
+              Given Ambiguous Terms: ["subscription"]
+              Relevant columns: [["Competition Member", "Regular Member", "Guest Member"]]
+              Underlying SQL Query: 'SELECT "Participant Name" FROM my_data WHERE "Competition Member" !=  "Standard"'
+              Outcome: 'valid'
+              Reason: 'All the columns can be used for "subscription" in the query. "subscription" need to be resolved first to generate a SQL query. So, the query is ambiguous and valid.'
+
+    Example 4: NL Ambiguous Query: "Count the number of distinct catalog"
+              Given Ambiguous Terms: "catalog"
+              Relevant columns: [["Item ID", "Item Name", "Item Code", "New Items ID"]]
+              Underlying SQL Query: 'SELECT count(DISTINCT "Item Code") FROM my_dataset'
+              Outcome: 'invalid'
+              Reason: 'As the query is requesting a number of distinct catalog, this could be collectively applied to all the columns in the list. The resolution of term 'catalog' is not needed here to generate a SQL query. So the ambiguous query is invalid"
+
+   Example 5: NL Ambiguous Query: "Can you show me the item profile, product_name and item profile?"
+              Given Ambiguous Terms: ["item profile"]
+              Relevant columns: [["product_name", "product_description", "product_price"]]
+              Underlying SQL Query: "SELECT T1.product_name, T1.product_description, T2.product_price FROM Products AS T1 JOIN Product_Pricing AS T2 ON T1.product_id = T2.product_id"
+              Outcome: 'invalid'
+              Reason: 'The same ambigous term appears twice in the ambiguous query corresponding to different columns when compared with SQL query, making it invalid.'
+
+   Example 7: NL Ambiguous Query: 'Show the average expense for year 2010'
+              Given Ambiguous Terms: ["expense"]
+              Relevant columns: [["actualCost", "salesTax", "commissionFee", "marketingCost" ]]
+              Underlying SQL Query: 'SELECT   avg("comissionFee") FROM my_dataset where date = 2010'
+              Outcome: 'invalid'
+              Reason: 'The query is requesting for average expenses and all the relevant columns represent different type of expenses. So the average of all the columns can be retrieved to generate a SQL query and does not need ambiguity resolution. So the query is invalid.'
+
+   Example 8: NL Ambiguous Query: "Get the list of students who enrolled in a short course but have not paid their dues."
+              Given Ambiguous Terms: ["dues"]
+              Relevant Columns: [["Course Fee", "Admission Fee", "Sports Fee", "Books Fee"]]
+              Underlying SQL Query: SELECT "Student Name" FROM my_data WHERE "Course Type" = "Short" AND "Sports Fee" = "No"
+              Outcome: 'valid'
+              Reason: 'All the columns can be used for "dues" in the query. "dues" need to be resolved first to generate a SQL query. So, the query is ambiguous and valid.'
+
+   Example 9: NL Ambiguous Query: "What are the number of sales by staff member"?
+              Given Ambiguous Terms: ["sales", "staff member]
+              Relevant columns: [["Monthly Order", "Weekly Orders", "Yearly Orders"], ["Employee ID", "Designated Employee", "Manager"]]
+              Underlying SQL Query: 'SELECT count("Monthly Orders"), "Employee ID" FROM my_data GROUP BY "Employee ID"'
+              Outcome: 'invalid'
+              Reason: 'The term "staff member" must be resolved to generate the SQL query, but the term "sales" does not raise ambiguity. All the columns linked with sale can be selected. As both the terms do not qualify for the overall ambiguity resolution, so the query is invalid"
+
+   Example 10: NL Ambiguous Query: "Can you show me the item profile for product id 10?"
+              Given Ambiguous Terms: ["item profile"]
+              Relevant columns: [["product_name", "product_id"]]
+              Underlying SQL Query: "SELECT T1.product_name, T1.product_id FROM Products where T1.product_id = 10"
+              Outcome: 'invalid'
+              Reason: 'The ambiguous query represents does not represent valid ambiguity as one of the relevant columns, product_id is already mentioned the query and both product_name and product_id can be selected for the SQL query. So there is no valid ambiguity in the query.'
+   
+   Example 11: NL Ambiguous Query: "Can you show me the profit when weekly cost is less than 100 and expense is less than 2000?"
+              Given Ambiguous Terms: ["expense"]
+              Relevant columns: [["monthly cost", "weekly cost"]]
+              Underlying SQL Query: 'SELECT profit FROM Sales where  "Weekly Cost" < 100' AND "Monthly Cost" > 2000
+              Outcome: 'invalid'
+              Reason: 'The ambiguous query represents does not represent valid ambiguity as "Weekly Cost" associated with "expense" term is already mentioned in the query whihc should be less than 100. At the same time, "Weekly Cost" cannot be greater than 2000 so this leads to the selection of "Monthly Cost" for SQL generation.'
+
+   Example 12: NL Ambiguous Query: "Show arrival time for flight endpoint in New York."
+                Given Ambiguous Terms: ["flight endpoint"]
+                Relevant columns: [["departure_flight", "arrival_flight"]]
+                Underlying SQL Query: 'SELECT arrival_time FROM Flight WHERE arrival flight = "New York"'
+                Outcome: 'invalid'
+                Reason: 'The ambiguous query represents does not represent valid ambiguity as the context of the query represent "arrival_flight" column for the given "flight endpoint" ambiguous query. So the query is not ambiguous'
+   
+   ### **Inputs**
+
+   Ambiguous Natural Language Query:
+   {ac_query}
+
+   Ambiguous Term:
+   {term}
+
+   Relevant Columns
+   {cols_to_compare}
+
+   Possible SQL Query:
+   {expected_query}
+
+   ### **Outputs**
+   **Your response must follow these instructions**:
+   {format_instructions}
+    
+  utt_ambiguity_consistency_eval_prompt: |
+   You are a SQL expert specializing in natural language (NL)-to-SQL translation and data quality refinement.
+   You are given an ambiguous version of a natural language query. This ambiguity represents the use of generic words/terminology for a column which could be mapped to multiple columns in the database. This confusion can lead to different SQl query translation. Your task is to assess the consistency of the ambiguous version of the given query against the original SQL query.
+      
+   ### **Instructions**
+
+   The following instructions must be strictly followed:
+   1. **Consistency Assessment**: The ambiguous query should be compared with the original SQL query for assessment.
+         - The ambiguous term(s) and corresponding true column(s) is given that resolves the ambiguity in the given query.
+         - When the ambiguous term(s) is replaced by the true column(s), the resulting query should be consistent with the underlying SQL query. Specifically, it should meet the following two conditions:
+            * the query translates to the given SQL query.
+            * the intention and goal of the given ambiguous query aligns with the SQL query. 
+   2. **Response Generation**: After replacing the ambiguous term(s) with true column(s) in the given ambiguous query, if the resulting query corresponds to underlying SQL query then the outcome is 'valid'. Otherwise, it is 'invalid'.
+         - The valid assessment must address the two consistency condition.
+         - Provide a reason for the assessment as well.
+   3.  **Constraints**:
+         - Base your reason strictly on the provided instructions. Response should be specific to given queries, ambiguous term and true column information.
+         - Do not use any external knowledge or make assumptions.
+         - Refrain from providing a SQL language-based response and instead, provide a natural language response.
+   4. **Response Format**: Strictly generate the response using the given output format. DO NOT generate any other content or text.
+      
+   ### **Examples**
+      
+   Example 1: 
+   Ambiguous Natural Language Query: 'show count of orders by employee sorted on employee name'
+   Ambiguous terms: ['orders', 'employee']
+   True Columns: ['Monthly Orders', 'Employee ID']
+   Underlying SQL Query: SELECT count("Monthly Orders"), "Employee ID" FROM my_data GROUP BY "Employee ID" ORDER BY "Employee Name" ASC
+   Outcome: 'valid'
+   Reason:  'When "orders" and "employee" in the ambiguous query are replaced by given true columns "Monthly Orders" and "Employee ID", it results in the same expected SQL query. Also, the goal and intention of the query is consistent with the SQL query.'
+
+   Example 2: 
+   Ambiguous Natural Language Query: 'display the total detail for employee id 454 and start date of 01-01-2010, sorted by Department."
+   Ambiguous Terms: ['detail']
+   True Column: ['Order Detail']
+   Underlying SQL Query: 'SELECT "Order Detail", "Start Date" FROM my_data WHERE "Start Date" = "01-01-2010" AND "Employee ID" = 454 ORDER BY Department ASC'
+   Outcome: 'invalid'
+   Reason: 'When "detail" in the ambiguous query is replace by given true column "Order Details", it resulting query does not matches with the original query and results in a different SQL query to the given one. Specifically, the ambiguous query mentions "total details" that suggests aggregation, which is inconsistent with the underlying SQL query.'
+
+   Example 3:
+   Ambiguous Natural Language Query: 'Can you show me the prices for all the products?"
+   Ambiguous Terms: ['product', 'price']
+   True Column: ['product_name', 'billing_price']
+   Underlying SQL Query: 'SELECT T1.product_name, T2.billing_price FROM Products AS T1 JOIN Product_Pricing AS T2 ON T1.product_id = T2.product_id'
+   Outcome: 'valid'
+   Reason: 'When "product" and "price" in the ambiguous query is replace by given true columns "product_name" and "billing_price", it results in the same expected SQL query. Also, the goal and intention of the query is consistent with the underlying SQL query".
+
+   Example 4: 
+   Ambiguous Natural Language Query: "Count the number of membership"
+   Ambiguous Terms: ['membership']
+   True Column: ['Enrolment ID']
+   Underlying SQL Query: 'SELECT count(DISTINCT "Enrolment ID") FROM my_dataset'
+   Outcome: 'invalid'
+   Reason: 'The SQL query is requesting for distinct "Enrolment ID", whereas the the ambiguous query is not considering the distinct "membership" which is linked with "Enrolment ID". As the ambiguous query is not consistent with the underlying SQL query, so the outcome is invalid".
+
+   ### **Inputs**
+
+   Ambiguous Natural Language Query:
+   {ac_query}
+      
+   Ambiguous Terms:
+   {term}
+
+   True Columns:
+   {cois}
+
+   Underlying SQL Query:
+   {expected_query}
+
+
+   ### **Outputs**
+   **Your response must follow these instructions**:
+   {format_instructions}
+
+  utt_confusion_consistency_eval_prompt: |
+   You are a SQL expert specializing in natural language (NL)-to-SQL translation and data quality refinement.
+   You are given a confusing version of a natural language query. This confusion arises from either the use of a non-existent column or an invalid value for a column in the database. This confusion can lead to no SQL query translation. Your task is to assess the quality of the confusion version of the given query against the original natural language query and SQL queries.
+      
+   ### **Instructions**
+
+   The following instructions must be strictly followed:
+   1. **Consistency Assessment**: The confusing query should be compared with the original natural language and SQL queries for assessment. 
+         - The confusing query either involves a `confusing term` and `confusing value`. Compare the given confusing query against the original natural language and SQL queries to identify source of confusion
+            - In case of confusing term, a non-exist column name is used instead of true column in the given confusing natural language query.
+            - In case of confusing value, an invalid value for column name is used under where clause in the given confusing natural language query. True value against the column is also provided for assessment.
+         - The confusing term or value and corresponding true column or value is given that resolves the confusion in the given query.
+         - When the confusing term or value is replaced by the true column or value, the resulting query should be consistent with the underlying original natural language and SQL queries. Specifically, it should meet the following two conditions:
+            * the query translates to the given SQL query.
+            * the intention and goal of the query is same as the original natural language query. 
+   2. **Response Generation**: If the resulting query, after replacing the confusing term or value with true column or value, corresponds to both underlying original natural language and SQL queries then the outcome is 'valid'. Otherwise, it is 'invalid'.
+         - The valid assessment must address the two consistency conditions.
+         - Provide a reason for the assessment as well.
+   3.  **Constraints**:
+         - Base your reason strictly on the provided instructions. Response should be specific to given queries, confusing term/value and true column/value information.
+         - Do not use any external knowledge or make assumptions.
+         - Strictly refrain from providing a SQL language-based response and instead, provide a natural language response. Do not include SQL queries in the reasoning.
+   4. **Response Format**: Strictly generate the response using the given output format. DO NOT generate any other content or text.
+      
+   ### **Inputs**
+
+   Confusing Natural Language Query:
+   {ac_query}
+      
+   Confusing Term or Value:
+   {term}
+
+   True Column and Value if Available:
+   {cols_to_compare}
+
+   Original Natural Language Query:
+   {question}
+
+   Underlying SQL Query:
+   {expected_query}
+
+   ### **Outputs**
+   **Your response must follow these instructions**:
+   {format_instructions}
+
+  utt_confusion_column_eval_prompt: |
+   You are a SQL expert specializing in natural language (NL)-to-SQL translation and data quality refinement.
+   You are given a confusing version of a natural language query.
+   This confusion represents the use of words/terminology for a column which could not be mapped to any columns in the database, consequently resulting in no SQL query translation. Your task is to assess the quality of the confusing version of the given query against the given database columns and SQL query.
+      
+   ### **Instructions**
+   1. **Confusing Assessment**: The confusing query should be compared with the given confusing term, database columns list, and underlying SQL query for assessment. Use the following instructions to identify the validity of the given confusing natural language query.
+         - The confusing version cannot be mapped to a valid SQL.
+            - The given confusing term is mentioned in the natural language query.
+            - No column in the database column list can be translation of the confusing term.
+         - For the confusing query to be valid, the given confusing term and the context of the query should not lead to generation of the SQL query.
+   2. **Response Generation**: If the given confusing query satisfies the given conditions then the outcome is 'valid'. Otherwise, it is 'invalid'.
+         - Provide a reason to justify the assessment.
+         - Response should be specific to given relevant columns list, natural language and SQL queries.
+   3.  **Constraints**:
+         - Base your reason strictly on the provided instructions.
+         - Do not use any external knowledge or make assumptions.
+         - Strictly refrain from providing a SQL language-based response and instead, provide a natural language response.
+   4. **Response Format**: Strictly generate the response using the given output format. DO NOT generate any other content, text or explanation.
+
+   ### **Inputs**
+
+   Confusing Natural Language Query:
+   {ac_query}
+
+   Confusing Term:
+   {term}
+
+   Database Columns:
+   {dataset_columns}
+
+   Underlying SQL Query:
+   {expected_query}
+
+   ### **Outputs**
+   **Your response must follow these instructions**:
+   {format_instructions}
+
+  utt_confusion_value_eval_prompt: |
+    You are a SQL expert specializing in natural language (NL)-to-SQL translation and data quality refinement.
+    You are given a confusing version of a natural language query.
+    This confusion represents the use of invalid value for a column that does not exist in the database. Your task is to assess the quality of the confusing version of the given query against the given values of the column names and SQL query.
+        
+    ### **Instructions**
+    1. **Confusing Assessment**: The confusing query should be compared with the given confusing value against list of column values. Use the following instructions to identify the validity of the given confusing natural language query.
+          - The confusing version is valid if the following two conditions are met. Otherwise, it is invalid.
+              i. The given confusing value is mentioned in the natural language query.
+              ii. The confusing value does not match any of the values in the given list.
+              iii. For numerical confusing value, it must be under '=' constraint to be considered as valid.
+    2. **Response Generation**: If the given confusing query satisfies the given conditions then the outcome is 'valid'. Otherwise, it is 'invalid'.
+          - Provide a reason to justify the assessment.
+          - Response should be specific to given relevant columns list, natural language and SQL queries.
+    3.  **Constraints**:
+          - Base your reason strictly on the provided instructions.
+          - Do not use any external knowledge or make assumptions.
+          - Strictly refrain from providing a SQL language-based response and instead, provide a natural language response.
+    4. **Response Format**: Strictly generate the response using the given output format. DO NOT generate any other content, text or explanation.
+
+    ### **Inputs**
+
+    Confusing Natural Language Query:
+    {ac_query}
+
+    Confusing Value:
+    {term}
+
+    List of Existing Values for the Column:
+    {column_values}
+
+    Underlying SQL Query:
+    {expected_query}
+
+    ### **Outputs**
+    **Your response must follow these instructions**:
+    {format_instructions}
+
+  conv_generator_prompt_single: |
+    You are a SQL expert specializing in natural language (NL)-to-SQL translation and data generation.
+    You are given a seed user and agent conversation that represents addressing ambiguous user requests. The ambiguous version represents a natural language query that cannot be converted into SQL statement as the specification of columns is not clear.
+    Your task is to revise and extend  the given conversation between user and agent depending on the type of conversation . This involves following steps:
+    i- Revise the initial 'AGENT' response to be more human-like, while preserving the column names mentioned in the query. Retain the original 'USER' response during the revision.
+        - Here is an example for 'AGENT' response revision:
+            Input Seed Conversation: [{{'role':'USER','content':'show count of orders by employee id sorted on employee name'}},
+                                      {{'role': 'AGENT', 'content': 'We noticed that "orders" could mean "Total Orders", "Yearly Orders", and "Monthly Orders". Could you please clarify which one you mean?'}}]
+            Revised Seed Conversation: [{{'role':'USER','content':'show count of orders by employee id sorted on employee name'}},
+                                        {{'role': 'AGENT', 'content': 'when you say "orders," are you referring to "Total Orders", "Yearly Orders", or "Monthly Orders"?'}}]
+    ii- Extend the revised conversation to generate 'USER' and 'AGENT' responses depending on the given conversation type. Specific instructions for different types of conversation are given below. Strictly follow the given instructions
+
+    ### **Types of Conversation**
+    1. Helpful:
+    - Generate the "USER" response where the given ground truth column is specified to address the ambiguity
+    - Following types of "USER" response to address ambiguity can be generated
+        - Concise: A direct mention of the given ground truth column name 
+        - Verbose: A natural response suggesting the column name. The column name must appear in the response. Do not generate elaborative response.
+    - Afterwards, generate 'AGENT' response which is the given SQL query.
+    - Here is an example of concise and verbose helpful response
+        Input Seed Conversation: [{{'role':'USER','content':'show count of orders by employee id sorted on employee name'}},
+                                  {{'role': 'AGENT', 'content': 'We noticed that "orders" could mean "Total Orders", "Yearly Orders", and "Monthly Orders". Could you please clarify which one you mean?'}}]
+        Input Ground Truth Column: ["Monthly Orders"]
+        SQl Query : 'SELECT count("Monthly Orders"), "Employee ID" FROM my_data'
+
+        Generated Conversation - Concise: [{{'role':'USER','content':'show count of orders by employee id sorted on employee name'}},
+                                           {{'role': 'AGENT', 'content': 'It looks like "orders" could mean "Total Orders", "Yearly Orders", or "Monthly Orders". Could you clarify which one you're talking about?'}}
+                                           {{'role':'USER','content':'monthly order'}},
+                                           {{'role': 'AGENT', 'content': 'SELECT count("Monthly Orders"), "Employee ID" FROM my_data'}}]
+
+        Generated Conversation - Verbose: [{{'role':'USER','content':'show count of orders by employee id sorted on employee name'}},
+                                           {{'role': 'AGENT', 'content': 'When you say "orders", are you referring to "Total Orders", "Yearly Orders", or "Monthly Orders". Could you clarify which one you're talking about?'}},
+                                           {{'role':'USER','content': 'I want monthly orders'}},
+                                           {{'role': 'AGENT', 'content': 'SELECT count("Monthly Orders"), "Employee ID" FROM my_data'}}]
+
+    2. Partially Helpful:
+    - Generate the "USER" response where the given ground truth column is specified to address the ambiguity but exact column name is not used
+    - A variant of ground truth is generated without losing a context and column name. This represent a correct low quality response from the user
+      - Do not use the exact same column name. Instead, create a unique variant by including a segment of the original column name. 
+      - The initial seed "AGENT" response mentions multiple column options for selection, so this variant be specific to the ground truth column and should not be mixed or confusion with other columns in the "AGENT" response.
+         - For example, if the columns are named 'total_students' and 'enrolled_students,' the variant should be 'total' or 'enrolled' to clearly identify which column is being referenced.
+      - The variant should not change or paraphrase the column name e.g., 'customer id' is incorrect variant of 'client id'
+      - Only use the generated column variant as the 'USER' response. 
+    - After the user response is generated, the agent rewrites the original user request containing ambiguity, by replacing the ambiguous term with the column name specified by the user
+    - Maintain the original question's tone and phrasing style.
+    - Here is an example of partially helpful response
+        Input Seed Conversation: [{{'role':'USER','content':'show count of orders by employee id sorted on employee name'}},
+                                  {{'role': 'AGENT', 'content': 'We noticed that "orders" could mean "Total Orders", "Yearly Orders", and "Monthly Orders". Could you please clarify which one you mean?'}}]
+        Input Ground Truth Column: ["Monthly Orders"]
+        SQl Query : 'SELECT count("Monthly Orders"), "Employee ID" FROM my_data'                     
+        
+        Generated Conversation: [{{'role':'USER','content':'show count of orders by employee id sorted on employee name'}},
+                                 {{'role': 'AGENT', 'content': 'It is a bit unclear — does "orders" refer to "Total Orders", "Yearly Orders", or "Monthly Orders"'}}
+                                 {{'role':'USER','content':'monthly'}},
+                                 {{'role': 'AGENT', 'content': 'SELECT count("Monthly Orders"), "Employee ID" FROM my_data'}}]
+
+    3. Not Helpful:
+    - Generate a "USER" response where a useful and helpful response is not given by a user. Hence, user is not helping in resolving the ambiguity. Generate a "USER" response for the following cases:
+        - Random Column: Generate a response where column selection is not provided and any one of the options can be selection, such as "choose any" or "use one of the them".
+        - No Column: Generate a response where there is no clarity on the column selection, such as "I don't know", "I am not sure", "No idea", or "I don't know for certain".
+    - For such "USER"response, the 'AGENT' response must be accordingly generated.
+        - Random Column: if the user request choosing any of the columns without providing a specific column name, then choose any one of the columns from the previous 'AGENT' response and replace the given ground truth column in the given SQL query. The revise SQL query serves as the 'AGENT' response.
+        - No Column: if the column is not specified then the 'AGENT' response should reflect that user's response is unhelpful and the query cannot be generated. 
+    - Here are examples of not helpful response:
+        Input Seed Conversation: [{{'role':'USER','content':'show count of orders by employee id sorted on employee name'}},
+                                  {{'role': 'AGENT', 'content': 'We noticed that "orders" could mean "Total Orders", "Yearly Orders", and "Monthly Orders". Could you please clarify which one you mean?'}}]
+        Input Ground Truth Column: ["Monthly Orders"]
+        SQl Query : 'SELECT count("Monthly Orders"), "Employee ID" FROM my_data'    
+
+        Generated Conversation - Random Column: [{{'role':'USER','content':'show count of orders by employee id sorted on employee name'}},
+                                             {{'role': 'AGENT', 'content': '"orders" could refer to "Total Orders", "Yearly Orders", or "Monthly Orders". Could you specify which one you meant?'}}
+                                             {{'role':'USER','content': 'I am not sure. just pick one.'}},
+                                             {{'role': 'AGENT', 'content': 'SELECT count("Total Orders"), "Employee ID" FROM my_data' }}]
+        
+        Generated Conversation - No Column: [{{'role':'USER','content':'show count of orders by employee id sorted on employee name'}},
+                                 {{'role': 'AGENT', 'content': '"orders" could refer to "Total Orders", "Yearly Orders", or "Monthly Orders". Could you specify which one you meant?'}}
+                                 {{'role':'USER','content': 'I don't know.'}},
+                                 {{'role': 'AGENT', 'content': 'The query cannot be generated as "orders" cannot be mapped to a column name'}}]
+        
+        
+    ### ***Other Instructions**
+    - Generate the response based on the given conversation type.
+    - Wherever applicable, the response for 'USER' and 'AGENT' should have human-like tone and style.
+    - Use only the given information. Do not make assumptions.
+    - The final response should be a complete conversation. 
+    - Only generate the user and agent conversation in the requested format. DO NOT generate any other explanation or response.
+
+      
+    ### ***Inputs**:
+    Conversation Type:
+    {type}
+
+    Seed Conversation:
+    {conversation}
+
+    Ground Truth Column:
+    {cois}
+
+    SQL Query:
+    {expected_query}
+
+    Output:
+    {format_instructions}
+
+  conv_generator_prompt_multi: |
+    You are a SQL expert specializing in natural language (NL)-to-SQL translation and data generation.
+    You are given a seed user and agent conversation that represents addressing ambiguous user requests. The ambiguous version represents a natural language query that cannot be converted into SQL statement as the specification of columns is not clear.
+    Your task is to revise the given conversation between user and agent depending on the type of conversation. This involves following steps:
+    i- Revise the 'AGENT' response to be more human-like, while preserving the column names mentioned in the query. Retain the original initial 'USER' response during the revision.
+        - The 'AGENT' response has two clarification requests. So the revised response should address both requests.
+        - Here is an example for 'AGENT' response revision:
+            Input AGENT response: {{'role': 'AGENT', 'content': 'We noticed that "orders" could mean "Total Orders", "Yearly Orders", or "Monthly Orders". Could you please clarify which one you mean?'. 'We noticed that "employee" could mean "Employee Name", or "Employee ID". Could you please clarify which one you mean?'}}]
+            Revised AGENT response:: {{'role': 'AGENT', 'content': 'when you say "orders," are you referring to "Total Orders", "Yearly Orders", or "Monthly Orders"?\n Also, for "employee", does it mean "Employee Name", or "Employee ID"'}}]
+    ii- Revise the 'USER' responses based on the requested type of the conversation. Specific instructions for different types of conversation are given below. Strictly follow the given instructions
+    iii - Generate a final 'AGENT' response based on the type of conversation.
+
+    ### **Types of Conversation**
+    1. Helpful:
+    - Revise the 'USER' response considering the following types 
+        - Concise: Revise the input user response to only include the complete column names in a human-like style.
+        - Verbose: Revise the input user response to generate a human-like natural response suggesting the column name. The column name must appear in the response.
+    - Afterwards, generate 'AGENT' response which is the given SQL query.
+    - Here is an example of concise and verbose helpful response
+        Input Seed Conversation: [{{'role':'USER','content':'show count of orders by employee'}},
+                                  {{'role': 'AGENT', 'content': 'role': 'AGENT', 'content': 'We noticed that "orders" could mean "Total Orders", "Yearly Orders", or "Monthly Orders". Could you please clarify which one you mean?'. 'We noticed that "employee" could mean "Employee Name", or "Employee ID". Could you please clarify which one you mean?'}},
+                                  {{'role':'USER','content': 'Monthly Orders', 'Employee ID'}},
+        SQl Query : 'SELECT count("Monthly Orders"), "Employee ID" FROM my_data'
+
+        Revised Conversation - Concise: [{{'role':'USER','content':'show count of orders by employee'}},
+                                  {{'role': 'AGENT', 'content': 'It looks like "orders" could mean "Total Orders", "Yearly Orders", or "Monthly Orders". Also, "employee" could be either "Employee Name" or "Employee ID"? Could you clarify these terms?'}},
+                                  {{'role':'USER','content': 'monthly orders and employee id'}},
+                                  {{'role': 'AGENT', 'content': 'SELECT count("Monthly Orders"), "Employee ID" FROM my_data'}},
+                                  
+
+        Revised Conversation - Verbose: [{{'role':'USER','content':'show count of orders by employee'}},
+                                  {{'role': 'AGENT', 'content': 'When you mentioned "orders", did you mean Total Orders, Yearly Orders, or Monthly Orders?\n And for "employee", were you referring to the Employee Name or the Employee ID?'}},
+                                  {{'role':'USER','content': 'I want monthly orders and employee id for the query'}},
+                                  {{'role': 'AGENT', 'content':  'SELECT count("Monthly Orders"), "Employee ID" FROM my_data'}},
+       
+
+    2. Partially Helpful:
+    - Revise the 'USER' response where the given ground truth column is specified to address the ambiguity but exact column name is not used
+    - A variant of column name is generated without losing a context and column name. This represent a correct low quality response from the user
+         - Do not use the exact same column name. Instead, create a unique variant by including a segment of the original column name. 
+         - The initial seed "AGENT" response mentions multiple column options for selection, so this variant be specific to the ground truth column and should not be mixed or confusion with other columns in the "AGENT" response.
+            - For example, if the columns are named 'total_students' and 'enrolled_students,' the variant should be 'total' or 'enrolled' to clearly identify which column is being referenced.
+         - The variant should be generated for all the columns mentioned in the seed 'USER' response whenever possible.
+         - The variant should not change or paraphrase the column name e.g., 'customer id' is incorrect variant of 'client id'
+         - Only use the generated column variant as the 'USER' response. 
+    - Afterwards, generate 'AGENT' response which is the given SQL query.
+    - Here is an example of partially helpful response
+        Input Seed Conversation: [{{'role':'USER','content':'show count of orders by employee'}},
+                                  {{'role': 'AGENT', 'content': 'role': 'AGENT', 'content': 'We noticed that "orders" could mean "Total Orders", "Yearly Orders", or "Monthly Orders". Could you please clarify which one you mean?'. 'We noticed that "employee" could mean "Employee Name", or "Employee ID". Could you please clarify which one you mean?'}},
+                                  {{'role':'USER','content': 'Monthly Orders', 'Employee ID'}},
+        SQl Query : 'SELECT count("Monthly Orders"), "Employee ID" FROM my_data'
+
+        Revised Conversation: [{{'role':'USER','content':'show count of orders by employee'}},
+                               {{'role': 'AGENT', 'content': 'When you mentioned "orders", should we interpret that as "Total Orders", "Yearly Orders", or "Monthly Orders"?\n Also, for "employee", are you referring to the "Employee Name" or the "Employee ID"?'}},
+                               {{'role':'USER','content': 'monthly and id'}},
+                               {{'role': 'AGENT', 'content': 'SELECT count("Monthly Orders"), "Employee ID" FROM my_data'}},
+                              
+    3. Not Helpful:
+    - Generate a "USER" response where a useful and helpful response is not given by a user. Hence, user is not helping in resolving the ambiguity. Generate a "USER" response for the following cases:
+        - Random Column: Generate a response where column selection is not provided and any one of the options can be selection, such as "choose any" or "use one of the them".
+        - No Column: Generate a response where there is no clarity on the column selection, such as "I don't know", "I am not sure", "No idea", or "I don't know for certain" 
+    - For such "USER"response, the 'AGENT' response must be accordingly generated.
+        - Random Column: if the user request choosing any of the columns without providing a specific column names, then choose any one of the columns from the previous 'AGENT' response and replace the given ground truth column in the given SQL query. The revise SQL query serves as the 'AGENT' response.
+        - No Column: if the column is not specified then the 'AGENT' response should reflect that user's response is unhelpful and the query cannot be generated. 
+    - Here is an example of partially helpful response
+        Input Seed Conversation: [{{'role':'USER','content':'show count of orders by employee'}},
+                                  {{'role': 'AGENT', 'content': 'role': 'AGENT', 'content': 'We noticed that "orders" could mean "Total Orders", "Yearly Orders", or "Monthly Orders". Could you please clarify which one you mean?'. 'We noticed that "employee" could mean "Employee Name", or "Employee ID". Could you please clarify which one you mean?'}},
+                                  {{'role':'USER','content': 'Monthly Orders', 'Employee ID'}},
+        SQl Query : 'SELECT count("Monthly Orders"), "Employee ID" FROM my_data'
+
+        Revised Conversation - Random Column: [[{{'role':'USER','content':'show count of orders by employee'}},
+                                                {{'role': 'AGENT', 'content': 'role': 'AGENT', 'content': 'We noticed that "orders" could mean "Total Orders", "Yearly Orders", or "Monthly Orders". Could you please clarify which one you mean?'. 'We noticed that "employee" could mean "Employee Name", or "Employee ID". Could you please clarify which one you mean?'}},
+                                                {{'role':'USER','content': 'I am not sure, just pick one.'}},
+                                                {{'role': 'AGENT', 'content': 'SELECT count("Monthly Orders"), "Employee ID" FROM my_data' }}]
+        
+        Revised Conversation - No Column: [[{{'role':'USER','content':'show count of orders by employee'}},
+                                            {{'role': 'AGENT', 'content': 'role': 'AGENT', 'content': 'We noticed that "orders" could mean "Total Orders", "Yearly Orders", or "Monthly Orders". Could you please clarify which one you mean?'. 'We noticed that "employee" could mean "Employee Name", or "Employee ID". Could you please clarify which one you mean?'}},
+                                            {{'role':'USER','content': 'I don't know.'}},
+                                            {{'role': 'AGENT', 'content': 'The query cannot be generated as "orders" and "employee" cannot be mapped to valid column names'}}]
+                         
+        
+    ### ***Other Instructions**
+    - Generate the response based on the given conversation type.
+    - Wherever applicable, the response for 'USER' and 'AGENT' should have human-like tone and style.
+    - Use only the given information. Do not make assumptions.
+    - Only generate the user and agent conversation in the requested format. DO NOT generate any other explanation or response.
+
+      
+    ### ***Inputs**:
+    Conversation Type:
+    {type}
+
+    Seed Conversation:
+    {conversation}
+
+    SQL Query:
+    {expected_query}
+
+    Output:
+    {format_instructions}
+
+  conv_generator_prompt_confusion_column: |
+    You are a SQL expert specializing in natural language (NL)-to-SQL translation and data generation.
+    You are given a seed user and agent conversation that represents addressing confusing user requests.
+    The confusing version represents a natural language query that cannot be converted into SQL statement.
+    
+    Your task is to revise the initial 'AGENT' response to be more human-like, while preserving the column names mentioned in the query. Retain the original 'USER' response during the revision.
+    The intent of AGENT response must only be about informing the user that request can't be processed, because the entity can't be found in the database.
+
+    ### ***Important Instructions**
+    - **DO NOT** change the initial user's request.
+    - Use only the given information. Do not make assumptions.
+    - Only generate the user and agent conversation in the requested format. DO NOT generate any other explanation or response.
+
+      
+    ### ***Inputs**:
+    Seed Conversation:
+    {conversation}
+
+    Output:
+    {format_instructions}
+  
+  conv_generator_prompt_confusion_value: |
+    You are a SQL expert specializing in natural language (NL)-to-SQL translation and data generation.
+    You are given a seed user and agent conversation that represents addressing confusing user requests. The confusing version represents a natural language query that contains a value for a column that does not exist in the database. Your task is to revise the AGENT response to be more-human like. 
+    To achieve the given task, follow the given instructions where confusing value and the actual values of the column names are provided for generating AGENT response:
+    
+    ### **Instructions**
+    - Your task is to revise the initial 'AGENT' response to be more human-like, while preserving the column names mentioned in the query. Retain the original 'USER' response during the revision.
+    - The intent of AGENT response must only be about informing the user that request can't be processed, because the value can't be found in the database.
+    - For the revised AGENT response, compare the given value against a list of possible values. If the given value is very close (minor variation of the given value) to fewer than 3 values, mention the values in the revised response. DO NOT suggest using the mentioned values in the response.
+        - The closest match should not be applied to integer or numerical values (such as 2.5, 6.5, 2007). 
+        - The following are valid examples of "closest matches":
+            - "Jane" and "June"
+            - "sales@example.com" and "sales@example.net"
+            - "8-11-2001" and "8-12-2001"
+        - If a closet match is not found, then the revised response should suggest that the given value does not exist.
+        
+
+    ### **Constraints**
+    - **DO NOT** change the initial user's request.
+    - Use only the given information. Do not make assumptions.
+    - Only generate the user and agent conversation in the requested format. DO NOT generate any other explanation or response.
+
+      
+    ### ***Inputs**:
+    Seed Conversation:
+    {conversation}
+
+    Confusing Value:
+    {term}
+
+    List of Actual Values:
+    {column_values}
+
+    Output:
+    {format_instructions}
+  
+  conv_evaluator_prompt: |
+    You are a SQL expert specializing in natural language (NL)-to-SQL translation and data quality refinement.
+    You are given a conversation between user and agent that represents resolving the ambiguous version of an original query. This ambiguity represents the use of generic words/terminology for a column which could be mapped to multiple columns in the database. This confusion can lead to different natural language to SQL statements. The user and agent responses intend to resolve the ambiguity and achieve an unambiguous natural language query.
+    Your task is to assess the quality and correctness of the conversation.
+    
+    Consider the following instructions for the assessment:
+    1. Assess whether the first user request is a valid ambiguous query or not
+       a. The ambiguous query should contain ambiguous terminology for a column name mentioned in the original query.
+       b. The ambiguous terminology should correspond to multiple columns in the schema.  
+       c. Compare the ambiguous term with the given schema. If the ambiguous term maps to only one column of the schema then the query is considered invalid
+    2. Assess the intention of the first user request
+       a. Compare the user request with the original natural language request.
+       b. The intention of given user request is same as the original query i.e., the goal of the ambiguous version has not changed as compared to original query.
+       c. If the intention has not changed then it is valid, else it is invalid.
+    3. Assess the correctness of disambiguation conversation
+       a. The conversation between the user and agent leads to disambiguating the user request.
+       b. The conversation ask the clarity question suggesting multiple columns for selection, which must be responded by the user request.
+       c. There must be multiple column names option by the agent to resolve the ambiguity. If not, then the conversation is invalid.
+       d. The final agent response must resolve the ambiguity. The response must match with the original user request.
+       e. If the ambiguity is resolved then the conversation is valid, else it is invalid.
+    4. Assess SQL consistency of the final response
+       a. Compare the final agent response with the original request and underlying SQL query. 
+       b. The final response and original query must correspond with the same SQL query. 
+       c. If the final agent response and original query corresponds to the underlying SQL query then it is valid. Else it is invalid
+
+    For assessment, use the following guidelines and strictly base your reasons on the given inputs and provided Database Schema. Do not introduce any assumptions or external knowledge beyond the schema.
+    1. Give a valid or invalid response for each criteria
+    2. The response to valid if the given constraints are met, otherwise it's invalid.
+    3. Strictly follow the mentioned instructions. Do not make any assumption or inferences beyond that.
+    4. Provide a reason for each assessment. Refrain from providing a SQL language-based response and instead, provide a natural language response.
+    5. Each criteria has different scope so reasoning should be specific to each criterion.
+
+    Sample Database Schema:
+       CREATE TABLE "my_data" ( 
+       "Employee ID" VARCHAR(255),
+       "Employee Name" VARCHAR(255),
+       "Total Orders" NUMBER,
+       "Yearly Orders" NUMBER,
+       "Order Cost" NUMBER,
+       "Start Date" DATE,
+       "Monthly Orders" NUMBER,
+       "End Date" DATE,
+       "Annual Cost" NUMBER,
+       "Order Detail" VARCHAR(255),
+       "Company Name" VARCHAR(255),
+       "Department" VARCHAR(255),
+       "Category" VARCHAR(255),
+       "Cost" NUMBER
+       )
+
+    Examples with Correct Decision:
+       Example 1: Original Question: 'show count of Monthly Orders by Employee ID sorted on Employee Name'
+              Expected SQL query: '{{\"select\": [{{\"function\": \"count\", \"params\": [{{\"column\": \"Monthly Orders\"}}]}}], \"groupBy\": [{{\"column\": \"Employee ID\"}}],\"orderBy\": [{{\"expr\": {{\"column\": \"Employee Name\"}}}}]}}'
+              Conversation: [{{'role':'USER','content':'show count of orders by Employee ID sorted on Employee Name'}},
+                            {{'role': 'AGENT', 'content': 'We noticed that 'orders' could mean 'Total Orders', 'Yearly Orders', and 'Monthly Orders'. Could you please clarify which one you mean?’}},
+                            {{'role':'USER','content':'Monthly Order'}},
+                            {{'role': 'AGENT', 'content': 'show count of Monthly Orders by Employee ID sorted on Employee Name'}}]
+              validity_outcome: valid
+              validity_reason: The ambiguous query uses the term 'orders' instead of 'Monthly Orders', which could be linked to multiple columns 'Yearly Orders', 'Total Orders' and 'Monthly Orders' in the database. 'orders' is also not a column in the database. This meets the criteria for validity.
+              intention_outcome: valid
+              intention_reason: The intention of the ambiguous query is the same as the original query, which is to show the count of order by Employee ID sorted by Employee Name. 'orders' and 'Monthly Orders' have the same intention.
+              disambiguation_outcome: valid
+              disambiguation_reason: The user response addresses the 'orders' ambiguity in the request by providing column details 'Monthly Orders'. The final response by agent is similar to the given original query so the conversation is valid
+              consistency_outcome: valid
+              consistency_reason: 'Monthly Orders' is a valid column of the database schema . When 'orders' in the ambiguous query is replace by given true column name 'Monthly Orders', it results in the same expected SQL query and does not change the intention of the SQL query
+
+       Example 2: Original Question: 'display Order Detail where Start Date is 01-01-2010 and Employee ID is 454 sorted on Department'
+              Expected SQL query: '{{\"select\": [{{\"column\": \"Order Detail\"}}], \"where\": [{{\"operator\": \"IN\", \"lhs\": {{\"function\": \"Day\", \"params\": [{{\"timeColumns\": [\"Start Date\"]}}]}}, \"rhs\": [\"01-01-2010\"]}},{{\"operator\": \"IN\", \"lhs\": {{\"column\": \"Employee ID\"}}, \"rhs\": [454]}}], \"orderBy\": [{{\"expr\": {{\"column\": \"Department\"}}}}]}}'
+              Ambiguous Question: 'display information where Start Date is 01-01-2010 and Employee ID is 454 sorted on Department'
+              Conversation: [{{'role':'USER','content': 'display information where Start Date is 01-01-2010 and Employee ID is 454 sorted on Department'}},
+                            {{'role': 'AGENT', 'content': 'We noticed that 'information' could mean Order Detail. Could you please clarify which one you mean?'}},
+                            {{'role':'USER','content':' I want to use Order Detail'}},
+                            {{'role': 'AGENT', 'content': 'display Order Detail by Start Date is 01-01-2010 and Employee ID is 454 sorted on Department'}}]
+              validity_outcome: invalid
+              validity_reason: 'information' could not be linked specifically to any columns such as Order Details, Total Orders, or Order Cost. This does not meet the criteria of validity
+              consistency_outcome: no
+              consistency_reason: The intention of the ambiguous query is too general and is different to the original query that specifically asks to show th Order Detail given the Start Date. 'information' could represent any column of the database
+              disambiguation_outcome: invalid
+              disambiguation_reason: There were no multiple column options offered to address the ambiguity. Only one column was presented to user, hence, the conversation is invalid.
+              consistency_outcome: invalid
+              consistency_reason: The original query uses where clause, whereas the last agent response suggests a group by which is wrong. The final response is not consistent with the underlying SQL query
+
+    
+    Inputs:
+    Database Schema:
+    {db_schema}
+
+    Original Query:
+    {new_query}
+
+    Expected SQL Query:
+    {expected_query}
+
+    Conversation:
+    {conversation}
+
+    Output:
+    {format_instructions}
+
+  hybrid_lexical_retrieval_prompt: |
+     You are a detail-oriented data analyst. You are given a list of database schema columns and a term. Your task is to analyze schema columns and given term to determine if they are lexical similar.
+
+      ---
+
+      ### **Definition**
+
+      **Lexical Similarity**: The column and given term share majority common words (tokens) and have a similar writing style or structure.
+         * **Valid Examples:** 
+            * `"Customer Name"` and `"Customer Email"` (Share the token "customer" and similar writing structure).
+            * `"Customer Contact Number"` and `"Employee Contact Number"` (Share common tokens and similar writing style).
+            * `"Customer Number"` and `"Customer Contact Number"` (Share common tokens and similar writing structure).
+            * `"Order Generated Bar Number"` column  and `"Order Generated Transfer Number"` (Share common tokens and similar writing structure)
+         * **Invalid Example:**
+            * `"Order #"` and `"delayed orders"` (Share the token "order", but have different writing styles and structures).
+            * `"Order Created Date"` and `"Order ID"` (Share the token "order", but have different writing styles and structures).
+            * `"Employee Name"` and `"Customer ID"` (Do not share any common tokens).
+            * `"Inventory Allocated Batch Number"` and  `"Invoice Allocated Serial Number"` (Share minimal common tokens).
+
+      ---
+
+      ### **Instructions**
+
+      1. **Analyze**: 
+         * Compare each column of the `Given Schema Column List` with the `Given Term` using only the `Lexical Similarity` definition.
+         * There should be a major overlap of common words or tokens between column and term.
+            * If the term and column both have two tokens, then one token should be common between the two. 
+         * Given term and column must have similar writing style or structure.
+            * If the term and column both have two tokens with one token common between them, then writing structure or style does not apply in this case.
+      2. **Decide**: 
+         * Determine if the similarity outcome is `"valid"` (they are similar) or `"invalid"` (they are not).
+         * If the column is not closely similar to the term then it is `"invalid"`.
+      3. **Explain**: Provide a brief reason for your decision.
+      4. **Constraints**:
+         * Base your reason strictly on the provided definitions.
+         * Do not use any external knowledge or make assumptions.
+         * Do not consider the meanings of the columns. Strictly use `Lexical Similarity` definition ONLY.
+      5. **Format**: Strcitly generate the response according to the `Output Format` instructions, generating a list of dictionaries. Each dictionary response corresponds to each column of the `Given Schema Column List` containing the following keys with corresponding values
+            * 'name': name of the column
+            * 'outcome': 'valid' or 'invalid' similarity assessment
+            * 'reason': reason behind the assessment outcome
+
+
+      ---
+
+      ### **Example**
+      
+      **Example 1**:
+      Given Term: "Product Category"
+      Given Schema Column List:   ["Product Barcode","Product Assigned SKU", "Product Price", "Product Sales Tax", "Product Description"]
+      Response: [{{'name': "Product Barcode", outcome: "valid", reason: "Column and term both contains two tokes, out of which one token is common between the two"}},
+               {{'name': "Product Assigned SKU", outcome: "invalid", reason: "Column and term do not share many common tokens, which makes the writing style and structure different as well"}},
+               {{'name': "Product Price", outcome: "valid", reason: "Column and term both contains two tokes, out of which one token is common between the two"}},
+               {{'name': "Product Sales Tax", outcome: "invalid", reason: "Column and term do not share many common tokens, which makes the writing style and structure different as well"}},
+               {{'name': "Product Description", outcome: "valid", reason: "Column and term both contains two tokes, out of which one token is common between the two"}}]
+
+      **Example 2**:
+      Given Term: "Manager Name"
+      Given Schema Column List:  ["Student Name", "Instructor Name", "Student Registration ID", "Contact Number", "Address", "Program Name"]
+      Response: [{{'name': "Student Name", outcome: "valid", reason: 'Column and term share common token "name" which makes them lexically similar'}},
+               {{'name': "Instructor Name", outcome: "valid", reason: 'Column and term share common token "name" which makes them lexically similar'}},
+               {{'name': "Student Registration ID", outcome: "invalid", reason: "Column and term do not any common tokens, which makes them lexically dissimilar"}},
+               {{'name': "Contact Number", outcome: "invalid", reason: "Column and term do not any common tokens, which makes them lexically dissimilar"}},
+               {{'name': "Address", outcome: "invalid", reason: "Column and term do not any common tokens, which makes them lexically dissimilar"}},
+               {{'name': "Program Name", outcome: "valid", reason: 'Column and term share common token "name" which makes them lexically similar'}}]
+      
+      **Example 3**:
+      Given Term: "Inventory Allocated Batch Number"
+      Given Schema Column List:  ["Inventory Allocated Batch", "Invoice Allocated Serial Number",  "Inventory Allocated Serial Number", "Invoice Processed Serial ID"]
+      Response: [{{'name': "Inventory Allocated Batch", outcome: "valid", reason: "Column and term share maximum token making them closely similar"}},
+               {{'name': "Invoice Allocated Serial Number", outcome: "invalid", reason: "Though writing structure is of column and term is closely similar, they do not share many common tokens making the similarity invalid"}},
+               {{'name': "Inventory Allocated Serial Number", outcome: "valid", reason: "Column and term both share many common tokens or words and their writing structure is also closely similar"}},
+               {{'name': "Invoice Processed Batch Number", outcome: "invalid", reason: "Column and term do not share many common tokens making similarity invalid"}}]
+
+      **Example 4**:
+      Given Term: "shelf location"
+      Given Schema Column List:  ["Book Title", "Author Name", "Publication Year", "locker location", "isbn number", "storage bin location"]
+      Response: [{{'name': "Book Title", outcome: "invalid", reason: "Column and term do not any common tokens, which makes them different and lexically dissimilar"}},
+               {{'name': ""Author Name", outcome: "invalid", reason: "Column and term do not any common tokens, which makes them different and lexically dissimilar"}},
+               {{'name': "Publication Year", outcome: "invalid", reason: "Column and term do not any common tokens, which makes them different and lexically dissimilar"}},
+               {{'name': "locker location", outcome: "valid", reason: 'Column and term share common "location" token , which makes them lexically similar'}},
+               {{'name': "isbn number", outcome: "invalid", reason: "Column and term do not any common tokens, which makes them different and lexically dissimilar"}},
+               {{'name': "storage bin location", outcome: "valid", reason: 'Column and term share common "location" token , which makes them lexically similar'}}]
+              
+      ---
+
+      ### **Input**
+
+      * **Given Schema Column List**:
+         {subset_columns}
+         
+      * **Given Term**:
+         {coi}
+         
+      ---
+
+      ### **Output Format**
+
+      * **Your response must follow these instructions**:
+         {format_instructions}
+
+  hybrid_semantic_retrieval_prompt: |
+     You are a detail-oriented data analyst. You are given a list of database schema columns and a term. Your task is to analyze schema columns and given term to determine if they are semnatically similar.
+
+      ---
+
+      ### **Definition**
+
+      **Semantic Similarity**: The column and the given term are semantically similar if they have overlapping meanings or represent the same, or closely related information, high-level criteria or category, even if the wording differs.
+         * **Valid Examples:** The two terms in the examples represent closely related information
+            * `"revenue generated"` and `"profit margin"` 
+            * `"sales achieved"` and `"projects completed"` .
+            * "Annual Cost" and "Annual Profit"          
+         * **Invalid Example:** The two terms in the examples represent different information
+            * `"vendor contact"` and `"number of delayed orders"`.
+            * `"Item Procured Date"` and `"Order ID"`.
+            * `"Employee Name"` and `"Customer ID"`.
+
+      ---
+
+      ### **Instructions**
+
+      1. **Analyze**: 
+         * Compare each column of the `Given Schema Column List` with the `Given Term` using only the `Semantic Similarity` definition.
+      2. **Decide**: 
+         * Determine if the similarity outcome is `"valid"` (they are similar) or `"invalid"` (they are not).
+         * If the column is not semantically similar to the term then it is `"invalid"`.
+      3. **Explain**: Provide a brief reason for your decision.
+      4. **Constraints**:
+         * Base your reason strictly on the provided definitions.
+         * Do not use any external knowledge or make assumptions.
+         * Strictly use `Semantic Similarity` definition ONLY, by considering the meaning of the columns for the decision.
+      5. **Format**: Strcitly generate the response according to the `Output Format` instructions, generating a list of dictionaries. Each dictionary response corresponds to each column of the `Given Schema Column List` containing the following keys with corresponding values
+            * 'name': name of the column
+            * 'outcome': 'valid' or 'invalid' similarity assessment
+            * 'reason': reason behind the assessment outcome
+         * Strictly use the given keys when generating the response   
+  
+      ---
+
+      **Example 1**:
+      Given Term: "Employee Designation Level"
+      Given Schema Column List: ["Employee Job Title", "Employee ID", "Start Date", "End Date", "Department Contact"]
+      Response: [{{'name': "Employee Job Title", outcome: "valid", reason: "Column and term both refer to job role relevant to an employee, which makes them semantically similar."}},
+                 {{'name': "Employee ID", outcome: "valid", reason: "Column and term refers to information related to an employee, where Employee ID is associated with a designation level. This makes the similarity valid."}},
+                 {{'name': "Start Date", outcome: "invalid", reason: "Column and term both represent different information. As these are dissimilar, the outcome is invalid."}},
+                 {{'name': "End Date", outcome: "invalid", reason: "Column and term both represent different information. The given term represent information linked with employee, whereas start date represents timestamp. As these are dissimilar, the outcome is invalid."}},
+                 {{'name': "Department Contact", outcome: "valid", reason: "Column and term both represent different information. The given term represent designation of an employee, whereas the column represents contact associated with department. As these are dissimilar, the outcome is invalid."}}]
+
+      **Example 2**:
+      Given Term: "Software Failure"
+      Given Schema Column List: ["Annual Cost", "Security Breach", "Order Cost", "Malfunctions in Hardware", "Total Sales Tax"]
+      Response: [{{'name': "Annual Cost", outcome: "invalid", reason: "Column and term both represent different information, making them dissimilar. This makes the outcome invalid."}},
+                 {{'name': "Security Breach", outcome: "valid", reason: "Column and term represent related information, as both could be linked with a category of failures and breaches. This makes the similarity outcome valid."}},
+                 {{'name': "Order Cost", outcome: "invalid", reason: "Column and term both represent dissimilar information. So, the outcome is invalid."}},
+                 {{'name': "Malfunctions in Hardware", outcome: "valid", reason: "Column and term both represent similar information. Both could be linked with a category of failures and malfunction, making them semantically similar."}},
+                 {{'name': "Total Sales Tax", outcome: "invalid", reason: "Column and term both represent dissimilar information. Tax and failure have different context, which is why semantical similarity outcome is invalid."}}]
+
+      ---
+
+      ### **Input**
+
+      * **Given Schema Column List**:
+         {subset_columns}
+         
+      * **Given Term**:
+         {coi}
+         
+      ---
+
+      ### **Output Format**
+
+      * **Your response must follow these instructions**:
+         {format_instructions}
+
+  llm_retrieval_prompt: |
+     You are a data retriever expert specializing in extracting relevant columns from database.
+     You are given a database schema and a term. Your task is to analyze the schema columns and identify columns that are relevant to the given term.
+
+     Follow these instructions for the task:
+     1. Carefully examine the the given database schema.
+     2. Identify and select all the columns from the schema that are relevant to the given term. 
+     3. Relevance could be based on one or more of the following criteria
+        a) The columns and term share common tokens. 
+         - Example 1: "Customer Name", "Customer Contact", "Customer Address", "Employee email", and "Contact email" are similar to "customer email" term, sharing either 'customer' or 'email' token.
+         - Example 2: "Order #", "Order Date", "number of orders", and "delayed orders" are similar to "order" term.
+        b) The columns and term share common meaning. 
+         - Example 1: “Wage”, “Income”, “Pay”,	“Compensation”, and “Earnings” have similar meaning to term 'salary'.
+         - Example 2: “Start Date”, “Employment Date”, “Onboarding Date”,“Date Of Joining”,“Joining Date” have similar meaning to "date of hire"
+        c) The columns and term share similar context. 
+         - Example 1: "Investment", "Unemployment" and "GDP" columns are contextually similar to 'economic factor' term.
+         - Example 2: “natural language processing”, “big data”, “computer vision”, and “predictive modeling” are contextually similar to “machine learning" term.
+     4. Select all the columns that are relevant to the given term. Multiple similarity criteria may apply to the term. 
+        - Don't limitt the selection to one criterion.
+        - Don't limit the selection to exact match of the given term with the column.
+     5. Provide a brief reason explaining the selection of columns.
+     6. Strictly follow the given output format instructions
+
+      Inputs:
+      Database Schema:
+      {db_schema}
+
+      Given Term:
+      {coi}
+
+      Outputs:
+      {format_instructions}
+
+  test_case_classify: |
+   You are a NL2SQL system expert. You are given a natural language query that belongs to one of the four categories:
+   **Type of Categories*
+   1. **Lexical Column Ambiguity**: The query includes tokens or terms that refer to a column, but there is no exact match with any column in the given schema. However, the term or token is lexically similar to two or more columns of the schema, making it unclear which column the query is referring to.
+      - Lexical similarity means that the term shares similar name and writing style or structure with two or more columns of the give schema. 
+      - This ambiguity requires clarification from human for column selection to successfully generate a SQL query. Without this clarification, a SQL query cannot be generated, as each column would produce different results in the SQL query.  
+      - Here are a few examples of lexical similarity:
+            - "orders" term is lexically similar to "Total Orders" and "Yearly Orders" columns
+            - "id" term is lexically similar to "Employee_ID", "Department_ID", and  "Organisation_ID"
+            - "allocated batch number" term is lexically similar to "Inventory Allocated Batch Number" and "Invoice Allocated Batch Number"
+   2. **Semantic Column Ambiguity**: The query includes tokens or terms that refer to a column, but there is no exact match with any column in the schema. However, the term or token is semantically similar to two or more columns of the schema, making it is unclear which column the query is referring to.
+      - Semantic Similarity means that the term represents higher-level category, concept, synonym, or overlapping ideas in a knowledge space with two or more columns of the schema. 
+      - This ambiguity requires clarification from human for column selection to successfully generate a SQL query. Without this clarification, a SQL query cannot be generated
+      - Here are a few examples of semantic similarity:
+            - "issue" is semantically similar to "Security Breach", "Malfunctions in Hardware", and  "Hardware Failure" columns
+            - "expense" is semantically similar to "annual_cost", "order_cost", "registration_fee", and "seller_commission_fee" columns.
+            - "performance" is semantically similar to "salesAchieved", "projectsCompleted", and "scoreReceived" columns
+   3. **Column Confusion**: The query contains tokens or terms that cannot be mapped to any columns in the schema. The term or token is neither lexically nor semantically similar to any columns in the schema. The column does not exists in the schema.
+   4. **Unambiguous**: The query contains tokens or terms referring to a column, with each term being mapped to a single column in the schema. Unambiguous queries can be translated to SQL query without any human intervention
+
+   ### **Instructions**:
+   You are given a natural language query and database schema. Follow the given instructions to classify the query can be translated into SQL query or not without any human intervention.
+   1. Analyse the natural language query to identify the terms that refers to column in the schema
+   2. Compare the identified terms against the database schema and assess whether the terms maps to any columns of the database schema.
+      - Ignore the case (uppercase or lowercase), singular plural and minor variations during the comparison. For example:
+            -'Customer Count', 'customer count', 'CUSTOMER COUNT', 'customer_count' and 'customer counts' represent the same entity. 
+            - 'no.', 'number' or '#' represent the same word or token. 
+            - 'Customer Count' and 'Count Customer' represent the same entity. 
+   3. Considering the ***Type of Categories** and the assessment, identify whether the given natural language query is "translatable" or "untranslatable"
+      - Unambiguous query are translatable as it can be successfully converted into SQL query without any human intervention.
+      - Lexical and Semantic Column Ambiguities requires human intervention to clarify which column is being referred to in the query. So the query is untranslatable.
+      - Column Confusion mentions column that does not exist in the schema, so the query is untranslatable.
+   4. Provide a reason for the assessment. "The reason should be specific to the given schema and natural language query, clearly indicating which terms correspond to which columns in the schema.
+
+   **Format**: Strictly generate the response using the given output format. DO NOT generate any other content or text.
+
+   ### **Inputs**
+   Database Schema:
+   {db_schema}
+
+   Natural Language Question:
+   {ac_query}
+
+   ### **Outputs**
+   {format_instructions}
+
+  test_case_ac: |
+   You are a NL2SQL system expert. You are given a natural language query that belongs to one of the four categories:
+   **Type of Categories*
+   1. **Lexical Column Ambiguity**: The query includes tokens or terms that refer to a column, but there is no exact match with any column in the given schema. However, the term or token is lexically similar to two or more columns of the schema, making it unclear which column the query is referring to.
+      - Lexical similarity means that the term shares similar name and writing style or structure with two or more columns of the give schema. 
+      - This ambiguity requires clarification from human for column selection to successfully generate a SQL query. Without this clarification, a SQL query cannot be generated
+      - Here are a few examples of lexical similarity:
+            - "orders" term is lexically similar to "Total Orders" and "Yearly Orders" columns
+            - "ID" term is lexically similar to "Employee_ID", "Department_ID", and  "Organisation_ID"
+            - "allocated batch number" term is lexically similar to "Inventory Allocated Batch Number" and "Invoice Allocated Batch Number"
+   2. **Semantic Column Ambiguity**: The query includes tokens or terms that refer to a column, but there is no exact match with any column in the schema. However, the term or token is semantically similar to two or more columns of the schema, making it is unclear which column the query is referring to.
+      - Semantic Similarity means that the term represents higher-level category, concept, synonym, or overlapping ideas in a knowledge space with two or more columns of the schema. 
+      - This ambiguity requires clarification from human for column selection to successfully generate a SQL query. Without this clarification, a SQL query cannot be generated
+      - Here are a few examples of semantic similarity:
+            - "issue" is semantically similar to "Security Breach", "Malfunctions in Hardware", and  "Hardware Failure" columns
+            - "expense" is semantically similar to "annual_cost", "order_cost", "registration_fee", and "seller_commission_fee" columns.
+            - "performance" is semantically similar to "salesAchieved", "projectsCompleted", and "scoreReceived" columns
+   3. **Column Confusion**: The query contains tokens or terms that cannot be mapped to any columns in the schema. The term or token is neither lexically nor semantically similar to any columns in the schema. The column does not exists in the schema.
+   4. **Unambiguous**: The query contains tokens or terms referring to a column, with each term being mapped to a single column in the schema. Unambiguous queries can be translated to SQL query without any human intervention
+
+   ### **Instructions**:
+   You are given a natural language query that may belong to one of the given categories. Your task is to identify terms or tokens that represents a column name but does not have an exact match with columns of the given schema. Follow the given instructions to achieve this goal.
+   1. Analyse the natural language query to identify the terms that refers to column in the schema taking into account the given ***Type of Categories**
+      - Schema can contain multiple tables, compare the terms against each table
+      - Ignore the case (uppercase or lowercase), singular plural and minor variations during the comparison. For example:
+            -'Customer Count', 'customer count', 'CUSTOMER COUNT', 'customer_count' and 'customer counts' represent the same entity. 
+            - 'no.', 'number' or '#' represent the same word or token. 
+            - 'Customer Count' and 'Count Customer' represent the same entity. 
+            - 'Identifier', 'ID', or 'identity' represent the same entity.
+   2. Identify the list of terms that refer to a column but do not exactly match any column names in the schema.
+      - There could be more than one terms whose exact match does not exist
+      - If exact match with the schema columns exist for the identified terms then use 'None Found' for response
+   3. Provide a reason for the assessment. The reason should be specific to the given schema.
+
+   **Format**: Strictly generate the response using the given output format, recording terms and reason seperately. DO NOT generate any other content or text.
+
+   ### **Inputs**
+   Datbase Schema:
+   {db_schema}
+
+   Natural Language Question:
+   {ac_query}
+
+   ### **Outputs**
+   {format_instructions}
+
+  verify_ac: |
+   You are a data scientist. You are given two set of list, your task it is assess whether there is an overlap of the elements in the two lists or not.
+   ### **Instructions**:
+   - Compare the elements of given `List 1` and `List 2`.
+   - If there is an overlap of elements between the two lists i.e., the lists share common elements, then the response is 'yes', otherwise, its 'no'.
+      - The response is 'no' if one of the lists does not contain valid elements for comparison
+   - Provide a reason for the outcome stating the overlapping or unique elements found during the comparison
+   - When making the comparison between the two lists, ignore the case (uppercase or lowercase), singular plural and minor variations . For example:
+      -'Customer Count', 'customer count', 'CUSTOMER COUNT', 'customer_count' and 'customer counts' represent the same entity. 
+      - 'no.', 'number' or '#' represent the same word or token. 
+      - 'customer_count' and 'Count Customer' represent the same entity. 
+   - Strictly generate the response using the given output format. DO NOT generate any other content or text.
+
+   List 1: {term}
+   List 2: {cols_to_compare}
+
+   ### **Outputs**
+   {format_instructions}
+     
+  single_col_value_ambiguity_prompt: |
+     You are a data retriever expert specializing in identifying values that are similar from a database.
+     Your task is to analyze the given value in the column and identify similar strings that are similar to the given value from the provided value list.
+
+     Definition of similarity:
+     - In this task, we identify a value in the value list to be similar to the given value if they can be summarized into a higher-level term, but still represent the same or closely related information. 
+
+     Let's finish this task step by step:
+     Step 1. Go through the given value list carefully.
+     Step 2. Identify values that are similar to the given value.
+     Step 3. Briefly explain the selection of values and recheck your selection.
+     Step 4. Strictly follow the given output format instructions and give your final response.
+
+      Inputs:
+      Value list:
+      {subset_columns}
+
+      Given value:
+      {voi}
+
+      Outputs:
+      {format_instructions}
+
+  multi_cols_value_ambiguity_prompt: |
+   
+      ### **Instruction**
+
+      You are given a list of **column names** from a database schema.
+      These columns either:
+
+      1. Contain the same value in the data, or
+      2. Have value ranges that overlap (e.g., numeric or date columns with intersecting ranges).
+
+      Your task is to:
+
+      * **Generate a more general, higher-level term** that could naturally represent *two or more* of these columns.
+      * The generated term should sound natural in a user query and be **semantically broad enough** to refer to any of the provided columns.
+      * This term will later be used to make the user's NL2SQL request **ambiguous**.
+
+      ### **Guidelines**
+
+      * The general term must **not** exactly match any column name.
+      * The term should **combine or abstract** the meaning of all given columns.
+      * If columns refer to **IDs**, names, or categories of the same entity, use the entity name (e.g., `"customer_id"` and `"customer_name"` → `"customer"`).
+      * If columns are **temporal** (e.g., `"creation_date"`, `"modification_date"`), use a generic time-related term (e.g., `"date"`, `"time"`).
+      * If columns are **numeric ranges** (e.g., `"sales_amount"`, `"discount_value"`), use a general quantitative term (e.g., `"value"`, `"metric"`, `"figure"`).
+      * If columns come from different tables but have semantically related meanings (e.g., `"browser_id"`, `"accelerator_id"`), generate a neutral joint concept (e.g., `"entity"`, `"object"`, `"item"`).
+      * Avoid adding underscores or SQL-specific symbols — output natural language terms.
+
+      ### **Examples**
+
+      **Example 1**
+      Input columns: `["customer_id", "customer_name"]`
+      General term: "customer"
+      Rational: "Both columns represent identifying information about a customer."
+
+      **Example 2**
+      Input columns: `["creation_date", "modification_date"]`
+      General term: "date"
+      Rational: "Both columns describe time-related aspects of a record."
+
+      **Example 3**
+      Input columns: `["order_amount", "discount_value"]`
+      General term: "value"
+      Rational: "Both columns represent numerical financial quantities."
+
+      ### **Inputs**:
+      Columns list:
+      {subset_columns}
+
+      Original request:
+      {question}
+
+      Value in the original request:
+      {voi}
+
+      Outputs:
+      {format_instructions}
+
+  single_col_value_term_similarity_eval_prompt: |
+     You are a database expert in analyzing relevant values in database. You are given a term and a list of values in the database. Your task is to analyze the list of values and the given term to determine whether the term express similar meaning, generalising to all values in the given list.
+     
+     ### **Inputs**
+     Given Term:
+     {term}
+     
+     Given List of Values:
+     {vals_to_compare}
+
+     ### **Outputs**
+     
+     **Your response must follow these instructions**:
+     {format_instructions}
+
+  multi_cols_value_term_similarity_eval_prompt: |
+     You are a database expert in analyzing relevant values in database. 
+     Your goal is to assess whether the generated general term accurately and appropriately represents the meaning of a given list of database columns. The rational provided by the generator can be referenced to validate the columns and the term.
+     
+     ### **Inputs**
+     A list of column names:
+     {cols_to_compare}
+     
+     A generated general term:
+     {term}
+     
+     The rational provided by the generator:
+     {reason}
+
+     You must evaluate how well the general term fulfills the intended abstraction role — it should be broad, semantically coherent, and natural for use in a user query.
+     
+     ### **Outputs**
+     
+     **Your response must follow these instructions**:
+     {format_instructions}
+
+  utt_single_col_value_ambiguity_generator_prompt: |
+    You are a SQL expert specializing in natural language (NL)-to-SQL translation and data generation. You are given a natural language question, its corresponding SQL query, and the original value that should be replaced by the provided ambiguous value term. 
+    
+    ### **Definition of Ambiguity**
+    A natural language request is considered ambiguous if it includes terms referring to column names or values that do not have an exact or synonymous match.
+
+    ### **Task**
+    Your task is to generate an *ambiguous variant* of the original natural language question. 
+    The ambiguity should arise from the replacement of the original value with the ambiguous value terms.
+    
+    ### **Constraints**
+    The new question should still sound natural and fluent but become ambiguous with respect to the intent of the original SQL query.
+    
+    Make sure you only modify the provided term, remove redundance but keeping the overall meanings unchanged.
+       
+    ### **Inputs**
+
+    Original Natural Language Question:
+    {question}
+
+    Original SQL Query:
+    {expected_query}
+    
+    Original Value:
+    {voi}
+
+    Ambiguous Value Terms:
+    {term}
+
+    History:
+    {history_conv}
+
+    ### **Outputs**
+    
+    **Your response must follow these instructions**:
+    {format_instructions}
+
+  utt_multi_cols_value_ambiguity_generator_prompt: |
+    You are a SQL expert specializing in natural language (NL)-to-SQL translation and data generation. You are given a natural language question, its corresponding SQL query, the original value that appears in multiple columns in the table, the original column used to answer the question, columns that contain the original value and a generated term generalising those columns. 
+    
+    ### **Definition of Ambiguity**
+    A natural language request is considered ambiguous if it includes terms referring to column names or values that do not have an exact or synonymous match.
+
+    ### **Task**
+    Your task is to generate an *ambiguous variant* of the original natural language question. 
+    The ambiguity should arise from the replacement of the original column with the generated term.
+    
+    ### **Constraints**
+    The new question should still sound natural and fluent but become ambiguous with respect to the intent of the original SQL query.
+    
+    Make sure you only modify the provided term, remove redundance but keeping the overall meanings unchanged.
+       
+    ### **Inputs**
+
+    Original Natural Language Question:
+    {question}
+
+    Original SQL Query:
+    {expected_query}
+    
+    Original Column:
+    {coi}
+
+    Original Value:
+    {voi}
+
+    Columns containing the Original Value:
+    {cols_to_compare}
+
+    Generated Term:
+    {term}
+
+    History:
+    {history_conv}
+
+    ### **Outputs**
+    
+    **Your response must follow these instructions**:
+    {format_instructions}
+
+  utt_single_col_value_ambiguity_eval_prompt: |
+   You are a SQL expert specializing in natural language (NL)-to-SQL translation and data quality refinement.
+   You are given an ambiguous version of a natural language query. This ambiguity represents the use of generic words/terminology for a value used to generate SQL query. This generic word/terminology could be mapped to multiple values in a column, consequently resulting in different SQl query translation. Your task is to assess the quality of the ambiguous version of the given query against the underlying SQL query.
+      
+   **Ambiguity Task Definition**: A natural language query is considered ambiguous if it cannot be mapped to a deterministic SQL query unless the ambiguity is resolved.
+      - The ambiguity is linked with the value selection. This means that insufficient details for a value/values in the request is/are provided, leading to multiple possible values in the database that can be used to generate different SQL queries.
+         
+   ### **Instructions**
+   You MUST strictly follow these steps and instructions for the assessment:
+   Step 1. **Carefully review the query to be assessed.** The ambiguous term provided is the generic terminology used in the query. The relevant values in the column are the possible values that can be mapped to the ambiguous term. A possible SQL query is also provided which could be generated from the ambiguous query. 
+   Step 2. **Determine if the query is ambiguous or not.** The query to be assessed is ambiguous if it contains generic terminology for a value that can be mapped to multiple values in the database column.
+      - Compare the ambiguous term with the given relevant column values.
+      - If the ambiguous term maps to multiple values of the column AND the query still maintains natural phrasing, then the query is considered validly ambiguous.
+      - If the ambiguous term maps to only one value of the column then the query is considered invalid. 
+   Step 3. **Generate response.** After Step 2, if you assess the query as ambiguous, then the outcome is 'valid'. Otherwise, the outcome 'invalid'.
+         - Provide a reason to justify the assessment.
+         - Response should be specific to given relevant columns list, natural language and SQL queries.
+   
+   ### **Constraints to be considered**
+   - Ignore minor variations of tokens or words e.g., 'no.', 'num' and '#' represent the same token. Similarly, "department" and "dept" represents the same token.
+   - Ignore minor difference in order of the tokens or words e.g., "customer name" and "name customer" represents the same value.
+   - Base your reason strictly on the provided instructions.
+   - Do not use any external knowledge or make assumptions.
+   - Refrain from providing a SQL language-based response and instead, provide a natural language response.
+   
+   ### **Response Format**
+   Strictly generate the response using the given output format. DO NOT generate any other content, text or explanation.
+   
+   ### **Inputs**
+
+   Original Natural Language Question:
+   {question}
+
+   Possible SQL Query:
+   {expected_query}
+    
+   Original Column and Value:
+   {coi}
+
+   Relevant Values in the Column:
+   {vals_to_compare}
+
+   Generic Term:
+   {term}
+
+   Generated Ambiguous Natural Language Query:
+   {ac_query}
+
+   ### **Outputs**
+   **Your response must follow these instructions**:
+   {format_instructions}
+
+  utt_multi_cols_value_ambiguity_eval_prompt: |
+   You are a SQL expert specializing in natural language (NL)-to-SQL translation and data quality refinement.
+   You are given an ambiguous version of a natural language query. This ambiguity represents the use of generic words/terminology for a column used to generate SQL query. This generic word/terminology could be mapped to multiple columns that either:
+      1. Contain the same value in the data, or
+      2. Have value ranges that overlap (e.g., numeric or date columns with intersecting ranges).
+      
+   **Ambiguity Task Definition**: A natural language query is considered ambiguous if it cannot be mapped to a deterministic SQL query unless the ambiguity is resolved.
+      - The ambiguity is linked with the value selection. This means that insufficient details for a value/values in the request is/are provided, leading to multiple possible columns in the database that can be used to generate different SQL queries.
+         
+   ### **Instructions**
+   You MUST strictly follow these steps and instructions for the assessment:
+   Step 1. **Carefully review the query to be assessed.** The ambiguous term provided is the generic terminology used in the query. The relevant columns are those containing the value in the original request or having value range overlap. A possible SQL query is also provided which could be generated from the ambiguous query. 
+   Step 2. **Determine if the query is ambiguous or not.** The query to be assessed is ambiguous if it contains generic terminology for columns that can be used to get the value.
+      - Compare the ambiguous term with the given relevant columns.
+      - If the ambiguous term maps to multiple columns AND the query still maintains natural phrasing, then the query is considered validly ambiguous.
+      - If the ambiguous term maps to only one of the columns, then the query is considered invalid. 
+   Step 3. **Generate response.** After Step 2, if you assess the query as ambiguous, then the outcome is 'valid'. Otherwise, the outcome 'invalid'.
+         - Provide a reason to justify the assessment.
+         - Response should be specific to given relevant columns list, natural language and SQL queries.
+   
+   ### **Constraints to be considered**
+   - Ignore minor variations of tokens or words e.g., 'no.', 'num' and '#' represent the same token. Similarly, "department" and "dept" represents the same token.
+   - Ignore minor difference in order of the tokens or words e.g., "customer name" and "name customer" represents the same value.
+   - Base your reason strictly on the provided instructions.
+   - Do not use any external knowledge or make assumptions.
+   - Refrain from providing a SQL language-based response and instead, provide a natural language response.
+   
+   ### **Response Format**
+   Strictly generate the response using the given output format. DO NOT generate any other content, text or explanation.
+   
+   ### **Inputs**
+
+   Original Natural Language Question:
+   {question}
+
+   Possible SQL Query:
+   {expected_query}
+    
+   Original Column and Value:
+   {coi}
+
+   Columns containing the Original Value:
+   {cols_to_compare}
+
+   Generic Term:
+   {term}
+
+   Generated Ambiguous Natural Language Query:
+   {ac_query}
+
+   ### **Outputs**
+   **Your response must follow these instructions**:
+   {format_instructions}
