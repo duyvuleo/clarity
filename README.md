@@ -1,6 +1,6 @@
 # CLARITY
 
-CLARITY generates and studies conversational ambiguity and unanswerability in natural language to SQL. This release packages the local Spider and BIRD annotation snapshots and the generation pipeline described in [the CLARITY paper](https://aclanthology.org/2026.acl-industry.86/).
+CLARITY generates and studies conversational ambiguity and unanswerability in natural language to SQL. This release packages the pre-made Spider and BIRD annotations and the generation pipeline described in [the CLARITY paper](https://aclanthology.org/2026.acl-industry.86/).
 
 The released files contain **12,098 Spider conversations** and **7,170 BIRD conversations**, with 7,000 and 1,534 source seed records respectively. Schema and column catalogs cover 140 Spider databases and 11 BIRD databases. These are counts of the packaged files; they are not reconstructed paper evaluation splits.
 
