@@ -8,31 +8,12 @@ from pathlib import Path
 import re
 import tomllib
 import zipfile
+import sys
+import tempfile
 
-ROOT_FILES = {
-    "requirements-hybrid-lock.txt",
-    "SCHEMA_RETRIEVAL.md",
-    "README.md",
-    "LICENSE",
-    "NOTICE.md",
-    "DATA_LICENSE.md",
-    "DATA_CARD.md",
-    "CHANGELOG.md",
-    "VERIFICATION.md",
-    "CITATION.cff",
-    "requirements-lock.txt",
-    "pyproject.toml",
-    "MANIFEST.in",
-    ".gitignore",
-}
-ALLOWED_SUFFIXES = {
-    "src": {".py", ".yaml"},
-    "tests": {".py"},
-    "scripts": {".py"},
-    "configs": {".json"},
-    "provenance": {".json", ".jsonl", ".md", ".xml"},
-    ".github": {".yml"},
-}
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from publication import read_regular, sha256, snapshot, stage
+
 # Report only the file and rule name, never the matched material.
 LOCAL_ROOT_PATTERN = "/" + "Users/" + "|/" + "home/"
 RULES = {
@@ -49,32 +30,29 @@ def digest(path):
 
 
 def release_files(root):
-    for name in sorted(ROOT_FILES):
-        path = root / name
-        if not path.is_file():
-            raise ValueError(f"Missing release file: {name}")
-        yield path
-    for directory, suffixes in ALLOWED_SUFFIXES.items():
-        for path in sorted((root / directory).rglob("*")):
-            if (
-                path.is_file()
-                and path.suffix in suffixes
-                and not any(
-                    part in {"__pycache__", ".pytest_cache", ".ruff_cache", "build"}
-                    or part.endswith(".egg-info")
-                    for part in path.relative_to(root).parts
-                )
-            ):
-                yield path
-    for dataset in ("spider", "bird"):
-        for name in ("annotations.jsonl", "seeds.jsonl", "schemas.json", "columns.json"):
-            path = root / "data" / dataset / name
-            if not path.is_file():
-                raise ValueError(f"Missing benchmark file: {dataset}/{name}")
-            yield path
+    for name in sorted(snapshot(root)):
+        yield root / name
+
+
+def publication_bytes(root, include_values=False):
+    files = snapshot(root)
+    if include_values:
+        manifest = json.loads(files["provenance/data-manifest.json"])
+        for info in manifest["datasets"].values():
+            for entry in info["files"]:
+                if entry.get("optional"):
+                    name = entry["path"]
+                    data = read_regular(root, name)
+                    if sha256(data) != entry["sha256"]:
+                        raise ValueError("Optional catalog hash mismatch")
+                    files[name] = data
+    return files
 
 
 def audit(root, include_values=False):
+    provenance = json.loads((root / "provenance/source-manifest.json").read_text())
+    if any("source" in entry or "source_id" not in entry for entry in provenance["files"]):
+        raise ValueError("Provenance must use portable source identifiers")
     manifest = json.loads((root / "provenance/data-manifest.json").read_text())
     files = list(release_files(root))
     if include_values:
@@ -142,22 +120,36 @@ def audit(root, include_values=False):
     }
 
 
-def write_archive(path, files, root):
+def _write_bytes(path, files):
     if path.exists():
         raise FileExistsError(f"Refusing to overwrite {path.name}")
     with zipfile.ZipFile(path, "x") as archive:
-        for file in sorted(files):
-            info = zipfile.ZipInfo(
-                "clarity-public/" + file.relative_to(root).as_posix(), (2026, 10, 9, 0, 0, 0)
-            )
+        for name, data in sorted(files.items()):
+            info = zipfile.ZipInfo("clarity-public/" + name, (2026, 10, 12, 0, 0, 0))
+            info.create_system = 3
             info.external_attr = 0o100644 << 16
             info.compress_type = (
-                zipfile.ZIP_STORED if file.suffix == ".gz" else zipfile.ZIP_DEFLATED
+                zipfile.ZIP_STORED if name.endswith(".gz") else zipfile.ZIP_DEFLATED
             )
-            archive.writestr(info, file.read_bytes(), compresslevel=9)
+            archive.writestr(info, data, compresslevel=9)
     with zipfile.ZipFile(path) as archive:
         if archive.testzip():
             raise ValueError(f"Archive integrity check failed for {path.name}")
+
+
+def write_archive(path, files, root):
+    """Validate direct callers as well as the CLI, then archive the audited bytes."""
+    selected = {file.relative_to(root).as_posix() for file in files}
+    values = {f"data/{dataset}/values.json.gz" for dataset in ("spider", "bird")}
+    include_values = selected == values
+    reviewed = publication_bytes(root, include_values)
+    if selected != (values if include_values else set(reviewed)):
+        raise ValueError("Archive members differ from the reviewed publication inventory")
+    with tempfile.TemporaryDirectory(prefix="clarity-release-") as temporary:
+        source = Path(temporary)
+        stage(reviewed, source)
+        audit(source, include_values)
+        _write_bytes(path, {name: reviewed[name] for name in selected})
 
 
 def main():
@@ -167,15 +159,24 @@ def main():
     parser.add_argument("--include-values", action="store_true")
     args = parser.parse_args()
     root = args.root.resolve()
-    result = audit(root, args.include_values)
+    reviewed = publication_bytes(root, args.include_values)
+    with tempfile.TemporaryDirectory(prefix="clarity-release-") as temporary:
+        source = Path(temporary)
+        stage(reviewed, source)
+        result = audit(source, args.include_values)
     if args.output:
         args.output.mkdir(parents=True, exist_ok=True)
         version = tomllib.loads((root / "pyproject.toml").read_text())["project"]["version"]
         main_archive = args.output / f"clarity-spider-bird-{version}.zip"
-        write_archive(main_archive, release_files(root), root)
+        _write_bytes(
+            main_archive,
+            {name: data for name, data in reviewed.items() if not name.endswith("values.json.gz")},
+        )
         if args.include_values:
-            values = [root / "data" / dataset / "values.json.gz" for dataset in ("spider", "bird")]
-            write_archive(args.output / f"clarity-values-{version}.zip", values, root)
+            values = {
+                name: data for name, data in reviewed.items() if name.endswith("values.json.gz")
+            }
+            _write_bytes(args.output / f"clarity-values-{version}.zip", values)
     print(json.dumps(result, indent=2))
 
 

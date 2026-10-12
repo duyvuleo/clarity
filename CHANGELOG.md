@@ -1,5 +1,11 @@
 # Release-copy changes
 
+## 0.2.1 — October 12, 2026
+
+- Bound release ZIPs, wheels and source distributions to an explicit SHA-256 inventory of reviewed files. Untracked work and caches are excluded; changed reviewed inputs stop publication.
+- Replaced private provenance locators with neutral artifact identifiers while retaining source hashes, transformations and attribution.
+- Removed workstation ownership and timestamps from source-distribution headers. Runtime algorithms and benchmark records are unchanged.
+
 ## 0.2.0 — October 9, 2026
 
 - Wired conventional table-scoped BM25 + dense cosine search with weighted reciprocal-rank fusion into the generation graph. `hybrid` now denotes dense + sparse search; `dense`, `sparse` and existing `llm` modes are available.

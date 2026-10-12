@@ -1,5 +1,17 @@
 # Local verification
 
+Release 0.2.1 adds publication controls. `PUBLICATION.json` pins reviewed repository files;
+release ZIPs and PEP 517 builds verify these bytes and stage only listed files. Source
+distributions use neutral ownership metadata. Editable installs continue to use the
+developer's checkout and are for local development.
+
+After reviewing and staging intentional release changes, refresh the inventory explicitly
+with `python publication.py --from-index`, then stage `PUBLICATION.json`. Builds never
+refresh the inventory automatically. The software sdist excludes benchmark data and can
+rebuild a wheel without Git. Optional value catalogs retain their separate pinned hashes.
+`source-manifest.json` retains the prepared-source hashes recorded for 0.2.0;
+`PUBLICATION.json` pins the current release bytes.
+
 Release 0.2.0 has 49 passing regression tests in both the source and installed-wheel environments and adds conventional hybrid schema retrieval. Its [dedicated report](provenance/hybrid-retrieval/REPORT.md) records live local embeddings, two live graph cases, and database checks. Remote embedding providers have mocked contract coverage only. The earlier 0.1.1 evidence below is historical.
 
 Validation was performed on October 9, 2026 using Python 3.12.10 on macOS. The dependency versions are pinned in `requirements-lock.txt`. Machine-readable dataset, test and archive evidence is stored under `provenance/`.
