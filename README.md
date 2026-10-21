@@ -30,6 +30,9 @@ python -m pytest
 
 `clarity stats --data-root data --dataset spider` reports use-case counts. Dataset loading, validation and the tests run without credentials or model access. The lock file records the dependency versions used for local validation; the declared dependency bounds are in `pyproject.toml`.
 
+For a runnable walkthrough, open [Using CLARITY](notebooks/CLARITY_quickstart.ipynb).
+It covers data loading, validation, schema inspection, offline column retrieval and an optional generation run.
+
 ## Data
 
 | File in `data/spider/` or `data/bird/` | Contents |
